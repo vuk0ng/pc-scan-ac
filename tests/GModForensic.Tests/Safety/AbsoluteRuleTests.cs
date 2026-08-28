@@ -178,6 +178,55 @@ public sealed class AbsoluteRuleTests
         }
     }
 
+    [Fact]
+    public void Aucun_secret_de_credential_n_est_jamais_lu()
+    {
+        // §17 — INTERDICTION ABSOLUE de lire, afficher ou exporter un mot de passe.
+        // La structure CREDENTIALW expose CredentialBlob : aucun code du produit ne doit
+        // le nommer, ni appeler CredRead, ni toucher a la DPAPI.
+        string[] forbidden =
+        [
+            "CredentialBlob", "CredRead", "CryptUnprotectData", "ProtectedData.Unprotect",
+            "Microsoft\\Credentials", "Login Data", "Local Storage", "leveldb", "Cookies",
+        ];
+
+        var offenders = new List<string>();
+
+        foreach (var path in Directory.EnumerateFiles(
+                     Path.Combine(RepositoryRoot, "src"), "*.cs", SearchOption.AllDirectories))
+        {
+            if (path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var text = File.ReadAllText(path);
+
+            foreach (var token in forbidden)
+            {
+                // Une mention en commentaire explicatif est autorisee ; un usage ne l'est pas.
+                foreach (var line in text.Split('\n'))
+                {
+                    var trimmed = line.TrimStart();
+
+                    if (trimmed.StartsWith("//", StringComparison.Ordinal)
+                        || trimmed.StartsWith("///", StringComparison.Ordinal)
+                        || trimmed.StartsWith("*", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    if (line.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    {
+                        offenders.Add($"{Path.GetFileName(path)} : {token}");
+                    }
+                }
+            }
+        }
+
+        Assert.Empty(offenders);
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -17,5 +17,5 @@ public sealed class WindowsCapabilityProvider : ICapabilityProvider
 /// </summary>
 public sealed class DemoModuleProvider : IScanModuleProvider
 {
-    public IReadOnlyList<IScanModule> CreateModules() => ModuleCatalog.CreateDemoModules();
+    public IReadOnlyList<IScanModule> CreateModules() => ModuleCatalog.CreateAll();
 }

@@ -7,5 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\GModForensic.Abstractions\GModForensic.Abstractions.csproj" />
     <ProjectReference Include="..\GModForensic.Native\GModForensic.Native.csproj" />
+    <ProjectReference Include="..\GModForensic.Parsers\GModForensic.Parsers.csproj" />
   </ItemGroup>
 </Project>

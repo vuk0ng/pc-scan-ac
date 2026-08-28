@@ -14,3 +14,12 @@ PRIVILEGE_SET
 TOKEN_PRIVILEGES_ATTRIBUTES
 TOKEN_INFORMATION_CLASS
 LUID
+
+// --- Coffre d'identifiants : NOMS uniquement, jamais de secret (§17) ---
+CredEnumerateW
+CredFree
+CREDENTIALW
+CRED_ENUMERATE_FLAGS
+
+// --- Correspondance lettre de volume <-> peripherique NT (\Device\HarddiskVolumeN) ---
+QueryDosDeviceW

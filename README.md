@@ -16,8 +16,13 @@ l'étape 5 ; ceux du catalogue actuel sont des modules de démonstration.
 Étapes 1–2  Analyse, choix technologique, architecture          ✓ livré
 Étape 3     Squelette : garde-fous, orchestrateur               ✓ livré
 Étape 4     Interface : 4 écrans, MVVM, scoring, export         ✓ livré
-Étape 5     Les 18 modules réels                                à venir
+Étape 5     Les modules réels                                   5 / 18
 ```
+
+**Modules réels livrés** : informations système · registre (AppCompatFlags, MuiCache,
+FeatureUsage, UserAssist) · BAM · historique d'archives (WinRAR, 7-Zip) · identifiants (OINK).
+Les autres sont encore représentés par un module de démonstration, dont le libellé le dit
+explicitement — un rapport ne doit jamais laisser croire à une vérification qui n'a pas eu lieu.
 
 > L'interface n'a pas pu être vue : WPF ne s'exécute pas sur Linux. Le XAML compile et toute la
 > logique est testée, mais le rendu visuel reste à vérifier sur une machine Windows.
@@ -63,7 +68,7 @@ de `GModForensicScanner.exe` requiert Windows.
 
 ```bash
 dotnet build GModForensicScanner.sln     # doit rester à 0 avertissement
-dotnet test  GModForensicScanner.sln     # 59 tests
+dotnet test  GModForensicScanner.sln     # 90 tests
 
 # Voir un scan se dérouler, puis ce qu'affiche l'écran de résultats :
 dotnet test --filter Walkthrough --logger "console;verbosity=detailed"
@@ -151,6 +156,7 @@ n'importe quel rapport, et elle se met à jour sans recompiler le scanner.
 src/
 ├─ GModForensic.Abstractions   contrats purs (net8.0) — aucune dépendance Win32
 ├─ GModForensic.Native         P/Invoke générés par CsWin32 (net8.0-windows, x64)
+├─ GModForensic.Parsers       décodeurs purs des formats Windows (net8.0) — testables
 ├─ GModForensic.Scanners       les modules de collecte (net8.0-windows, x64)
 ├─ GModForensic.Detection      corrélation, règles, scoring (net8.0)
 ├─ GModForensic.Engine         orchestrateur, isolation, progression (net8.0)

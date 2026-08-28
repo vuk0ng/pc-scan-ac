@@ -44,7 +44,7 @@
                      Text="scan passif · lecture seule" />
         </StackPanel>
         <TextBlock Grid.Column="1" Style="{StaticResource Mono}" Foreground="{StaticResource Ink3}"
-                   Text="{Binding Screen}" />
+                   Text="{Binding ScreenLabel}" />
       </Grid>
     </Border>
 

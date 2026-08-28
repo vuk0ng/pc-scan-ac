@@ -56,6 +56,15 @@ public sealed partial class ShellViewModel : ObservableObject
         _current = Home;
     }
 
+    /// <summary>Libelle de l'ecran courant, en francais — l'enumeration est technique.</summary>
+    public string ScreenLabel => Screen switch
+    {
+        ShellScreen.Scan => "Scan en cours",
+        ShellScreen.Results => "Resultats",
+        ShellScreen.Export => "Export",
+        _ => "Preparation",
+    };
+
     public HomeViewModel Home { get; }
 
     public ScanViewModel Scan { get; }
@@ -129,6 +138,7 @@ public sealed partial class ShellViewModel : ObservableObject
     public void Navigate(ShellScreen screen)
     {
         Screen = screen;
+        OnPropertyChanged(nameof(ScreenLabel));
 
         Current = screen switch
         {

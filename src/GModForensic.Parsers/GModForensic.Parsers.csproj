@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!--
+      Decodeurs PURS des formats Windows : aucune dependance Win32, donc testables sur
+      echantillons figes en integration continue, y compris hors Windows. C'est le code le
+      plus delicat du produit — il ne doit pas etre le moins verifie.
+    -->
+  </PropertyGroup>
+</Project>

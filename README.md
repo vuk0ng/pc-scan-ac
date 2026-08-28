@@ -79,12 +79,16 @@ dotnet test --filter Walkthrough --logger "console;verbosity=detailed"
 
 ### Télécharger
 
-Chaque push produit un exécutable via GitHub Actions :
-onglet **Actions** → dernière exécution → artefact **`GModForensicScanner-win-x64`**.
-Il contient `GModForensicScanner.exe` et `SHA256.txt`.
+**[Dernière version publiée](https://github.com/vuk0ng/pc-scan-ac/releases/latest)** — lien direct,
+aucun compte GitHub requis. Chaque release contient `GModForensicScanner.exe` et `SHA256.txt`.
 
-Pour une version publiée, poser un tag `vX.Y.Z` : la release est créée automatiquement avec
-l'exécutable et son empreinte.
+Chaque push produit aussi un exécutable : onglet **Actions** → dernière exécution → artefact
+`GModForensicScanner-win-x64`. Celui-ci exige en revanche d'être **connecté à GitHub**, et expire
+au bout de 30 jours.
+
+Pour publier une nouvelle version : onglet **Actions** → workflow **build** → *Run workflow* →
+renseigner `release_tag` (par exemple `v0.5.0`). Un tag comportant un tiret part en pre-release.
+Un push de tag `vX.Y.Z` fonctionne également.
 
 ### Ou compiler soi-même
 

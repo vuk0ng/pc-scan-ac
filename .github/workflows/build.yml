@@ -87,7 +87,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create ${{ github.ref_name }} `
+          # Un tag comportant un tiret (v0.4.0-preview) est publie en pre-release :
+          # tant que les modules reels n'existent pas, ce n'est pas une version utilisable.
+          $prerelease = if ('${{ github.ref_name }}' -like '*-*') { '--prerelease' } else { '' }
+          gh release create ${{ github.ref_name }} $prerelease `
             publish/GModForensicScanner.exe publish/SHA256.txt `
             --repo ${{ github.repository }} `
             --title "GMod Forensic Scanner ${{ github.ref_name }}" `

@@ -7,14 +7,14 @@
 <title>Lecteur de rapport GMod</title>
 <style>
 /* ============================================================================
-   Identite : instrument de mesure, pas console de jeu. Neutres biaises teal.
+   D.A. Solve Community : navy tres sombre, accent bleu electrique, cartes arrondies.
    Aucune ressource externe : le fichier doit s'ouvrir sur une machine hors ligne.
    ========================================================================== */
 :root{
   --ground:#F3F6FC; --surface:#FFFFFF; --surface-2:#EDF2FA; --surface-3:#E3EAF6;
   --ink:#0C1424; --ink-2:#47587A; --ink-3:#7386A6;
   --line:#DCE4F1; --line-strong:#C3CFE3;
-  --accent:#2563EB; --accent-2:#1D4ED8; --accent-soft:#E4EDFD;
+  --accent:#2563EB; --accent-2:#1D4ED8; --accent-soft:#E4EDFD; --accent-strong:#2563EB;
   /* Rampe ORDINALE de gravite : clarte monotone (L 0,48 / 0,56 / 0,63), donc
      lisible sous toute forme de daltonisme. « Faible » est un neutre hors rampe,
      volontairement distinct du bleu d'accent — la couleur d'accent ne code jamais
@@ -30,7 +30,7 @@
     --ground:#080D18; --surface:#0E1626; --surface-2:#141E33; --surface-3:#1B2740;
     --ink:#E6EDF9; --ink-2:#94A5C4; --ink-3:#67779A;
     --line:#1E2A42; --line-strong:#2C3A57;
-    --accent:#3B82F6; --accent-2:#60A5FA; --accent-soft:#10203A;
+    --accent:#3B82F6; --accent-2:#60A5FA; --accent-soft:#10203A; --accent-strong:#2563EB; --accent-strong:#2563EB;
     --sev-crit:#F2626C; --sev-high:#F0954D; --sev-med:#E0C766; --sev-low:#8A9BB5;
     --sev-crit-bg:#302130; --sev-high-bg:#30292C; --sev-med-bg:#2D3130; --sev-low-bg:#212A3B;
     --ok:#4ADE80; --warn:#F0954D; --bad:#F2626C; --muted:#67779A;
@@ -42,7 +42,7 @@
   --ground:#080D18; --surface:#0E1626; --surface-2:#141E33; --surface-3:#1B2740;
   --ink:#E6EDF9; --ink-2:#94A5C4; --ink-3:#67779A;
   --line:#1E2A42; --line-strong:#2C3A57;
-  --accent:#3B82F6; --accent-2:#60A5FA; --accent-soft:#10203A;
+  --accent:#3B82F6; --accent-2:#60A5FA; --accent-soft:#10203A; --accent-strong:#2563EB;
   --sev-crit:#F2626C; --sev-high:#F0954D; --sev-med:#E0C766; --sev-low:#8A9BB5;
   --sev-crit-bg:#302130; --sev-high-bg:#30292C; --sev-med-bg:#2D3130; --sev-low-bg:#212A3B;
   --ok:#4ADE80; --warn:#F0954D; --bad:#F2626C; --muted:#67779A;
@@ -76,7 +76,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .intake-card .lede{color:var(--ink-2);margin:16px 0 0;font-size:17px;max-width:60ch}
 #drop{
   margin-top:28px;border:2px dashed var(--line-strong);border-radius:var(--r);background:var(--surface);
-  padding:30px;transition:border-color .15s, background .15s
+  padding:30px;
+  /* Seule la bordure est animee : transitionner le fond ferait animer le
+     basculement clair/sombre, ce qui n'a aucun sens. */
+  transition:border-color .15s
 }
 #drop.over{border-color:var(--accent);background:var(--accent-soft)}
 #json{
@@ -90,8 +93,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   padding:9px 18px;font-size:14px
 }
 .btn:hover{border-color:var(--accent);background:var(--surface-2)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--ground);font-weight:600}
-.btn.primary:hover{opacity:.88;background:var(--accent)}
+.btn.primary{background:var(--accent-strong);border-color:var(--accent-strong);color:#FFFFFF;font-weight:600}
+.btn.primary:hover{opacity:.9;background:var(--accent-strong)}
 .hint{color:var(--ink-3);font-size:13px;margin-top:16px;max-width:62ch}
 #err{color:var(--bad);font-size:14px;margin-top:12px;display:none;white-space:pre-wrap}
 
@@ -108,7 +111,7 @@ header.report h1{font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em}
 .badge.warn{background:var(--sev-high-bg);color:var(--sev-high)}
 .disclaimer{
   margin:18px 0 0;padding:14px 18px;border-left:3px solid var(--sev-high);
-  background:var(--sev-high-bg);color:var(--ink);border-radius:0 4px 4px 0;font-size:14px
+  background:var(--sev-high-bg);color:var(--ink);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:14px
 }
 
 /* ---------- sections ---------- */
@@ -183,7 +186,7 @@ input[type=search]{flex:1;min-width:200px}
 .contrib{display:grid;grid-template-columns:44px 1fr;gap:10px;font-size:13.5px;padding:3px 0}
 .contrib .p{font-family:ui-monospace,monospace;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 .total{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-weight:600}
-.fp{background:var(--sev-high-bg);border-left:3px solid var(--sev-high);padding:12px 14px;border-radius:0 4px 4px 0;font-size:13.5px}
+.fp{background:var(--sev-high-bg);border-left:3px solid var(--sev-high);padding:12px 14px;border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:13.5px}
 .ev{background:var(--surface-2);border-radius:var(--r-sm);padding:12px;margin-top:8px;font-size:12.5px}
 .ev .k{font-family:ui-monospace,monospace;font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em}
 

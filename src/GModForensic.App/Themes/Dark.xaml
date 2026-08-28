@@ -18,7 +18,10 @@
   <SolidColorBrush x:Key="Accent"      Color="#FF3B82F6" />
   <SolidColorBrush x:Key="AccentHover" Color="#FF60A5FA" />
   <SolidColorBrush x:Key="AccentSoft"  Color="#FF10203A" />
-  <SolidColorBrush x:Key="OnAccent"    Color="#FF061020" />
+  <!-- Bleu plein des boutons : blanc sur #2563EB donne 5,0:1, la ou blanc sur
+       l'accent #3B82F6 ne donnerait que 3,5:1 — insuffisant pour du texte. -->
+  <SolidColorBrush x:Key="AccentStrong" Color="#FF2563EB" />
+  <SolidColorBrush x:Key="OnAccent"    Color="#FFFFFFFF" />
 
   <!-- Couleur semantique, distincte de l'accent bleu : celui-ci ne code jamais
        une gravite. La rampe de gravite est ORDINALE — sa clarte croit de
@@ -119,8 +122,8 @@
 
   <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
     <Setter Property="Foreground" Value="{StaticResource OnAccent}" />
-    <Setter Property="Background" Value="{StaticResource Accent}" />
-    <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+    <Setter Property="Background" Value="{StaticResource AccentStrong}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentStrong}" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Template">
       <Setter.Value>

@@ -8,16 +8,19 @@ seraient longues à rechercher manuellement avec Process Hacker, Regedit, PowerS
 
 ## État du projet
 
-**Étape 3 terminée — squelette compilable.** La solution compile sans aucun avertissement et 31 tests
-passent. Les modules réels arrivent à l'étape 5 ; ceux du catalogue actuel sont des modules de
-démonstration qui servent à valider l'orchestrateur.
+**Étape 4 terminée — interface complète.** 4 écrans WPF en MVVM, thème sombre, export JSON et TXT.
+La solution compile sans aucun avertissement et 59 tests passent. Les modules réels arrivent à
+l'étape 5 ; ceux du catalogue actuel sont des modules de démonstration.
 
 ```
 Étapes 1–2  Analyse, choix technologique, architecture          ✓ livré
-Étape 3     Squelette : 8 projets, garde-fous, orchestrateur    ✓ livré
-Étape 4     Interface WPF complète (4 écrans, MVVM)             à venir
+Étape 3     Squelette : garde-fous, orchestrateur               ✓ livré
+Étape 4     Interface : 4 écrans, MVVM, scoring, export         ✓ livré
 Étape 5     Les 18 modules réels                                à venir
 ```
+
+> L'interface n'a pas pu être vue : WPF ne s'exécute pas sur Linux. Le XAML compile et toute la
+> logique est testée, mais le rendu visuel reste à vérifier sur une machine Windows.
 
 | Document | Contenu |
 |---|---|
@@ -28,6 +31,7 @@ démonstration qui servent à valider l'orchestrateur.
 | [`docs/05-ui-et-rapport.md`](docs/05-ui-et-rapport.md) | Interface WPF, rapports HTML/JSON/TXT, journalisation, erreurs, performance |
 | [`docs/06-plan-developpement.md`](docs/06-plan-developpement.md) | Étapes 3 à 10, ordre d'implémentation, compilation, décisions ouvertes |
 | [`docs/07-etape-3-squelette.md`](docs/07-etape-3-squelette.md) | Ce que contient le squelette, comment le compiler, ce que les tests prouvent |
+| [`docs/08-etape-4-interface.md`](docs/08-etape-4-interface.md) | Les 4 écrans, la séparation qui rend l'interface testable, les limites de vérification |
 
 ## Technologie retenue
 
@@ -59,9 +63,9 @@ de `GModForensicScanner.exe` requiert Windows.
 
 ```bash
 dotnet build GModForensicScanner.sln     # doit rester à 0 avertissement
-dotnet test  GModForensicScanner.sln     # 31 tests
+dotnet test  GModForensicScanner.sln     # 59 tests
 
-# Voir un scan se dérouler, progresser, échouer partiellement et s'annuler :
+# Voir un scan se dérouler, puis ce qu'affiche l'écran de résultats :
 dotnet test --filter Walkthrough --logger "console;verbosity=detailed"
 ```
 
@@ -75,6 +79,7 @@ src/
 ├─ GModForensic.Detection      corrélation, règles, scoring (net8.0)
 ├─ GModForensic.Engine         orchestrateur, isolation, progression (net8.0)
 ├─ GModForensic.Reporting      JSON / HTML / TXT + unique point d'écriture (net8.0)
-└─ GModForensic.App            WPF, manifeste requireAdministrator (net8.0-windows, x64)
+├─ GModForensic.Presentation   ViewModels MVVM, sans aucune référence WPF (net8.0)
+└─ GModForensic.App            XAML, thème, câblage Windows (net8.0-windows, x64)
 tests/GModForensic.Tests       xUnit (net8.0) — exécutable hors Windows
 ```

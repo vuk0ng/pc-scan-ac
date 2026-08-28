@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\src\GModForensic.Abstractions\GModForensic.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\GModForensic.Detection\GModForensic.Detection.csproj" />
     <ProjectReference Include="..\..\src\GModForensic.Engine\GModForensic.Engine.csproj" />
+    <ProjectReference Include="..\..\src\GModForensic.Presentation\GModForensic.Presentation.csproj" />
     <ProjectReference Include="..\..\src\GModForensic.Reporting\GModForensic.Reporting.csproj" />
   </ItemGroup>
 

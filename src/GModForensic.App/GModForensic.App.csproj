@@ -19,6 +19,7 @@
     <ProjectReference Include="..\GModForensic.Detection\GModForensic.Detection.csproj" />
     <ProjectReference Include="..\GModForensic.Engine\GModForensic.Engine.csproj" />
     <ProjectReference Include="..\GModForensic.Native\GModForensic.Native.csproj" />
+    <ProjectReference Include="..\GModForensic.Presentation\GModForensic.Presentation.csproj" />
     <ProjectReference Include="..\GModForensic.Reporting\GModForensic.Reporting.csproj" />
     <ProjectReference Include="..\GModForensic.Scanners\GModForensic.Scanners.csproj" />
   </ItemGroup>

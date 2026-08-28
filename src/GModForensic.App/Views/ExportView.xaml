@@ -1,0 +1,65 @@
+<UserControl x:Class="GModForensic.App.Views.ExportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:GModForensic.App.Converters">
+
+  <UserControl.Resources>
+    <conv:NotEmptyToVisibilityConverter x:Key="NotEmpty" />
+    <conv:ToneToBrushConverter x:Key="Tone" />
+  </UserControl.Resources>
+
+  <StackPanel MaxWidth="820" HorizontalAlignment="Left">
+
+    <TextBlock Style="{StaticResource Eyebrow}" Text="EXPORT" />
+    <TextBlock Style="{StaticResource H1}" Text="Générer le rapport" />
+    <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0"
+               Text="Le rapport contient tout ce qui a été collecté, y compris les éléments n'ayant produit aucun indicateur, ainsi que le journal des ressources réellement lues." />
+
+    <Border Style="{StaticResource Card}" Margin="0,22,0,0">
+      <StackPanel>
+        <TextBlock Style="{StaticResource H2}" Text="Dossier de sortie" />
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBox Grid.Column="0" Text="{Binding OutputDirectory, UpdateSourceTrigger=PropertyChanged}"
+                   FontFamily="{StaticResource MonoFont}" FontSize="12" />
+          <Button Grid.Column="2" Content="Parcourir..." Command="{Binding BrowseCommand}" />
+        </Grid>
+
+        <Border Style="{StaticResource Rule}" />
+
+        <TextBlock Style="{StaticResource H2}" Text="Formats" />
+        <CheckBox IsChecked="{Binding IncludeJson}" Margin="0,0,0,8"
+                  Content="JSON — rapport complet, exploitable par outil" />
+        <CheckBox IsChecked="{Binding IncludeText}" Margin="0,0,0,8"
+                  Content="TXT — résumé condensé, à coller dans un ticket" />
+        <TextBlock Style="{StaticResource Muted}" Foreground="{StaticResource Ink3}"
+                   Text="{Binding HtmlNotice}" />
+      </StackPanel>
+    </Border>
+
+    <StackPanel Margin="0,14,0,0" Visibility="{Binding StatusMessage, Converter={StaticResource NotEmpty}}">
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding WrittenFiles}" Margin="0,8,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Style="{StaticResource Mono}" Text="{Binding}" TextWrapping="Wrap" Margin="0,1" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+      <Button Content="Retour aux résultats" Command="{Binding BackCommand}" Margin="0,0,10,0" />
+      <Button Style="{StaticResource PrimaryButton}" Content="Exporter" Command="{Binding ExportCommand}" />
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

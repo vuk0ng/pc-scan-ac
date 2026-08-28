@@ -1,0 +1,153 @@
+<UserControl x:Class="GModForensic.App.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:GModForensic.App.Converters">
+
+  <UserControl.Resources>
+    <conv:NotEmptyToVisibilityConverter x:Key="NotEmpty" />
+  </UserControl.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+    <StackPanel>
+
+      <TextBlock Style="{StaticResource Eyebrow}" Text="ÉTAPE 1 — PRÉPARATION DU CONTRÔLE" />
+      <TextBlock Style="{StaticResource H1}" Text="Avant de lancer le scan" />
+      <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0" MaxWidth="720"
+                 HorizontalAlignment="Left"
+                 Text="Ce logiciel lit des artefacts détaillés sur une machine personnelle, en lecture seule. Il ne modifie rien, n'exécute aucun fichier trouvé et ne récupère aucun mot de passe. Tout ce qui est collecté figure dans le rapport." />
+
+      <!-- Capacités réellement obtenues (§2) -->
+      <Border Style="{StaticResource Card}" Margin="0,24,0,0">
+        <StackPanel>
+          <TextBlock Style="{StaticResource H2}" Text="Privilèges obtenus" />
+          <TextBlock Style="{StaticResource Mono}" Text="{Binding CapabilitySummary}" />
+
+          <ItemsControl ItemsSource="{Binding CapabilityNotes}" Margin="0,8,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Style="{StaticResource Muted}" Text="{Binding}" Margin="0,1" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <StackPanel Margin="0,14,0,0"
+                      Visibility="{Binding HasUnavailableModules, Converter={StaticResource NotEmpty}}">
+            <Border Style="{StaticResource Rule}" />
+            <TextBlock Style="{StaticResource H2}" Foreground="{StaticResource ToneWarn}"
+                       Text="Vérifications qui ne pourront pas être effectuées" />
+            <ItemsControl ItemsSource="{Binding Unavailable}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="18" />
+                      <ColumnDefinition Width="230" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="○" Foreground="{StaticResource ToneWarn}" />
+                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource Muted}"
+                               Text="{Binding UnavailableReason}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Traçabilité et consentement -->
+      <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+        <StackPanel>
+          <TextBlock Style="{StaticResource H2}" Text="Traçabilité du contrôle" />
+
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="14" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="14" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource Muted}" Text="Membre du staff" Margin="0,0,0,4" />
+            <TextBox   Grid.Row="1" Grid.Column="0" Text="{Binding OperatorName, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Grid.Row="0" Grid.Column="2" Style="{StaticResource Muted}" Text="Identifiant du sujet" Margin="0,0,0,4" />
+            <TextBox   Grid.Row="1" Grid.Column="2" Text="{Binding SubjectIdentifier, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Grid.Row="0" Grid.Column="4" Style="{StaticResource Muted}" Text="Référence (optionnel)" Margin="0,0,0,4" />
+            <TextBox   Grid.Row="1" Grid.Column="4" Text="{Binding Reference, UpdateSourceTrigger=PropertyChanged}" />
+          </Grid>
+
+          <Border Style="{StaticResource Rule}" />
+
+          <CheckBox IsChecked="{Binding ConsentGiven}">
+            <TextBlock TextWrapping="Wrap" MaxWidth="700"
+                       Text="La personne analysée a été informée de la nature du contrôle et a donné son accord. Cette mention est enregistrée dans le rapport." />
+          </CheckBox>
+        </StackPanel>
+      </Border>
+
+      <!-- Profil et modules -->
+      <Grid Margin="0,14,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="320" />
+          <ColumnDefinition Width="14" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Style="{StaticResource Card}" VerticalAlignment="Top">
+          <StackPanel>
+            <TextBlock Style="{StaticResource H2}" Text="Profil de scan" />
+            <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,10,0,0" Text="{Binding ProfileDescription}" />
+
+            <Border Style="{StaticResource Rule}" />
+
+            <TextBlock Style="{StaticResource H2}" Text="Répertoires analysés" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,6"
+                       Text="Un par ligne. Le disque entier n'est jamais parcouru." />
+            <TextBox Text="{Binding FileSystemRoots, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True" MinHeight="110" VerticalScrollBarVisibility="Auto"
+                     FontFamily="{StaticResource MonoFont}" FontSize="12" />
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2" Style="{StaticResource Card}">
+          <StackPanel>
+            <TextBlock Style="{StaticResource H2}" Text="Modules" />
+            <ItemsControl ItemsSource="{Binding Modules}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid Margin="0,4">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="270" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}"
+                              IsEnabled="{Binding IsAvailable}" Content="{Binding DisplayName}" />
+                    <TextBlock Grid.Column="1" Style="{StaticResource Muted}" VerticalAlignment="Center"
+                               Text="{Binding StatusText}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+        <TextBlock Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,16,0"
+                   Text="Le consentement, le nom du staff et l'identifiant du sujet sont requis." />
+        <Button Style="{StaticResource PrimaryButton}" Content="Lancer le scan"
+                Command="{Binding StartCommand}" />
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

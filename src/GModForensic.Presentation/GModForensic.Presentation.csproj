@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!--
+      Les ViewModels ne referencent AUCUN type WPF : ils ciblent net8.0 et sont donc
+      executables et testables sur n'importe quelle plateforme, y compris en CI Linux.
+      GModForensic.App ne contient plus que du XAML et le cablage Windows.
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GModForensic.Abstractions\GModForensic.Abstractions.csproj" />
+    <ProjectReference Include="..\GModForensic.Detection\GModForensic.Detection.csproj" />
+    <ProjectReference Include="..\GModForensic.Engine\GModForensic.Engine.csproj" />
+    <ProjectReference Include="..\GModForensic.Reporting\GModForensic.Reporting.csproj" />
+  </ItemGroup>
+
+</Project>

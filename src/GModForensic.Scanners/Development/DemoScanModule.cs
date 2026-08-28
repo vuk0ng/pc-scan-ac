@@ -61,6 +61,23 @@ public sealed class DemoScanModule : IScanModule
 
             await Task.Delay(_stepDuration, context.Clock, cancellationToken).ConfigureAwait(false);
 
+            // Un module produit des FAITS, jamais un jugement : ces observations simulent la
+            // forme de ce que produiront les modules reels a l'etape 5.
+            if (step % 10 == 0)
+            {
+                observations.Add(new Observation
+                {
+                    ModuleId = Id,
+                    Kind = ObservationKind.SystemFact,
+                    Timestamp = context.Clock.GetUtcNow(),
+                    Source = $"{DisplayName} (demonstration)",
+                    Evidence = Evidence.FromText(
+                        "Demo",
+                        $"{Id}#{step}",
+                        "Observation de demonstration — les modules reels arrivent a l'etape 5."),
+                });
+            }
+
             context.Progress.Report(new ModuleProgress(
                 Id,
                 (double)step / _steps,

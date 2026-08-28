@@ -8,7 +8,7 @@ jamais de pseudo-code. Chaque étape se termine par un livrable exécutable ou t
 | Étape | Livrable | Critère de fin |
 |---|---|---|
 | **3 · Squelette** ✓ | Solution, 7 projets + tests, `Directory.Build.props`, `BannedSymbols.txt`, `app.manifest`, contrats de `Abstractions`, `ScanOrchestrator` + `ModuleHost`, modules de démonstration | **Atteint** : `dotnet build` à 0 avertissement, 31 tests verts, scan factice qui progresse, échoue partiellement et s'annule en conservant ses résultats. Voir `docs/07`. |
-| **4 · Interface** | 4 écrans WPF, MVVM, thème sombre, progression, annulation, écran de résultats branché sur des données de démonstration | L'application se lance élevée, l'UI reste réactive, l'annulation fonctionne |
+| **4 · Interface** ✓ | 4 écrans WPF, MVVM, thème sombre, progression, annulation, résultats sur données de démonstration, export JSON et TXT | **Atteint** : ViewModels isolés dans un projet `net8.0`, donc testés hors Windows (59 tests). Rendu visuel à vérifier sur Windows. Voir `docs/08`. |
 | **5 · Modules** | Les 18 modules, un par un, dans l'ordre ci-dessous | Chaque module a ses tests ; un module en échec n'interrompt jamais le scan |
 | **6 · Moteur** | Normalisation, corrélation, chargeur de règles JSON, règles composites | Les scénarios de test produisent les entités attendues |
 | **7 · Scoring** | `ScoreAggregator`, `ScoreBreakdown`, atténuateurs, `KnowledgeBase` | Suite de non-régression faux positifs : score < 20 sur les 4 profils de machine saine |

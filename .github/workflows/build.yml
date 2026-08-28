@@ -1,0 +1,100 @@
+name: build
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compiler, tester et publier l'executable
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer le SDK .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restaurer
+        run: dotnet restore GModForensicScanner.sln
+
+      # TreatWarningsAsErrors est actif : un avertissement fait echouer la compilation,
+      # tout comme une violation de la REGLE ABSOLUE (RS0030).
+      - name: Compiler
+        run: dotnet build GModForensicScanner.sln -c Release --no-restore
+
+      - name: Tester
+        run: dotnet test GModForensicScanner.sln -c Release --no-build --verbosity normal
+
+      # EnableCompressionInSingleFile reste a false : compresser un executable unique
+      # augmente nettement le taux de faux positifs antivirus, or l'outil fait deja
+      # ce que fait un infostealer (limite L9 de docs/01).
+      - name: Publier l'executable
+        run: >
+          dotnet publish src/GModForensic.App/GModForensic.App.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=false
+          -o publish
+
+      # Transparence : le hash doit accompagner le binaire, pour que le staff comme la
+      # personne analysee puissent verifier que l'executable n'a pas ete modifie.
+      - name: Calculer l'empreinte SHA-256
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash publish/GModForensicScanner.exe -Algorithm SHA256).Hash.ToLower()
+          $size = [math]::Round((Get-Item publish/GModForensicScanner.exe).Length / 1MB, 1)
+          @(
+            "GModForensicScanner.exe"
+            "SHA-256 : $hash"
+            "Taille  : $size Mo"
+            "Version : ${{ github.sha }}"
+            "Compile : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') UTC"
+          ) | Set-Content publish/SHA256.txt
+          Get-Content publish/SHA256.txt
+
+      - name: Publier l'artefact telechargeable
+        uses: actions/upload-artifact@v4
+        with:
+          name: GModForensicScanner-win-x64
+          path: |
+            publish/GModForensicScanner.exe
+            publish/SHA256.txt
+          retention-days: 30
+
+  release:
+    name: Publier une version
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: GModForensicScanner-win-x64
+          path: publish
+
+      - name: Creer la release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create ${{ github.ref_name }} `
+            publish/GModForensicScanner.exe publish/SHA256.txt `
+            --repo ${{ github.repository }} `
+            --title "GMod Forensic Scanner ${{ github.ref_name }}" `
+            --notes @"
+          Scanner passif, en lecture seule. Il recense des indicateurs : aucun element qu'il produit ne constitue a lui seul une preuve d'utilisation de cheat.
+
+          **Executable non signe** : SmartScreen affichera un avertissement, et un antivirus peut reagir. C'est attendu (le programme enumere les processus et lit le volume brut, comme le ferait un infostealer). Verifiez l'empreinte SHA-256 fournie. Ne desactivez jamais votre antivirus pour l'executer.
+
+          Windows 10 ou 11 en 64 bits. Aucun runtime .NET a installer. Le programme demande l'elevation administrateur au demarrage.
+          "@

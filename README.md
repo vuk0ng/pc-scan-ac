@@ -69,6 +69,60 @@ dotnet test  GModForensicScanner.sln     # 59 tests
 dotnet test --filter Walkthrough --logger "console;verbosity=detailed"
 ```
 
+## Télécharger et exécuter
+
+> ### ⚠️ À l'étape 4, l'exécutable ne scanne encore RIEN
+> Le catalogue ne contient que des **modules de démonstration** : ils simulent une charge, affichent
+> une progression et produisent des détections d'exemple préfixées `DEMO.`. Aucun artefact Windows
+> n'est lu. L'application sert à valider l'interface et l'orchestration — **elle n'est pas utilisable
+> pour un contrôle réel** tant que l'étape 5 n'est pas livrée.
+
+### Télécharger
+
+Chaque push produit un exécutable via GitHub Actions :
+onglet **Actions** → dernière exécution → artefact **`GModForensicScanner-win-x64`**.
+Il contient `GModForensicScanner.exe` et `SHA256.txt`.
+
+Pour une version publiée, poser un tag `vX.Y.Z` : la release est créée automatiquement avec
+l'exécutable et son empreinte.
+
+### Ou compiler soi-même
+
+Prérequis : [SDK .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0).
+
+```powershell
+git clone https://github.com/vuk0ng/pc-scan-ac.git
+cd pc-scan-ac
+dotnet publish src/GModForensic.App/GModForensic.App.csproj -c Release -r win-x64 `
+  --self-contained true -p:PublishSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=false `
+  -o publish
+```
+
+L'exécutable est dans `publish\GModForensicScanner.exe` (≈ 154 Mo, autonome : aucun runtime .NET à
+installer sur la machine analysée).
+
+### Exécuter
+
+Windows 10 ou 11 **64 bits**. Double-cliquer sur l'exécutable.
+
+1. **UAC** — le manifeste demande `requireAdministrator`. Un refus empêche le démarrage : c'est
+   volontaire, l'UAC n'est jamais contourné.
+2. **SmartScreen** — l'exécutable n'est pas signé : « Windows a protégé votre ordinateur » →
+   *Informations complémentaires* → *Exécuter quand même*. Vérifiez l'empreinte SHA-256 avant.
+3. **Antivirus** — Defender ou un EDR peut réagir. C'est attendu : énumérer les processus, lire leur
+   mémoire et ouvrir le volume brut est exactement ce que fait un infostealer. **Ne désactivez jamais
+   votre antivirus pour l'exécuter** — cela contredirait la raison d'être de l'outil.
+
+Vérifier l'empreinte avant exécution :
+
+```powershell
+Get-FileHash .\GModForensicScanner.exe -Algorithm SHA256
+```
+
+L'application ne fait aucun accès réseau et n'envoie aucune donnée. Le rapport est un fichier local,
+écrit uniquement dans le dossier que vous choisissez.
+
 ## Structure
 
 ```

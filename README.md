@@ -127,6 +127,24 @@ Get-FileHash .\GModForensicScanner.exe -Algorithm SHA256
 L'application ne fait aucun accès réseau et n'envoie aucune donnée. Le rapport est un fichier local,
 écrit uniquement dans le dossier que vous choisissez.
 
+## Lire un rapport
+
+`tools/report-reader.html` est un **lecteur autonome** : collez le contenu de `rapport.json`
+(ou déposez le fichier) et il affiche un tableau de bord — score et sa décomposition par
+catégorie, état des modules, indicateurs filtrables avec le détail du score et les causes
+légitimes possibles, chronologie unifiée, données brutes et journaux.
+
+Enregistrez le fichier et ouvrez-le par double-clic. Il fonctionne **hors ligne** : aucune
+ressource externe, aucune requête réseau, aucune donnée transmise — la lecture se fait
+entièrement dans le navigateur.
+
+Les noms de fichiers d'un rapport proviennent de la machine analysée : ce sont des données
+hostiles. Le lecteur les traite exclusivement comme du texte (`textContent` / `createElement`),
+et un test de la suite échoue si une API d'injection de balisage ou un accès réseau y apparaît.
+
+Ce lecteur remplace avantageusement l'export HTML prévu au §23 : une seule page consomme
+n'importe quel rapport, et elle se met à jour sans recompiler le scanner.
+
 ## Structure
 
 ```

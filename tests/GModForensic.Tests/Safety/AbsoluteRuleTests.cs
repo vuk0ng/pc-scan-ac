@@ -129,6 +129,26 @@ public sealed class AbsoluteRuleTests
         }
     }
 
+    [Fact]
+    public void Le_lecteur_de_rapport_n_injecte_jamais_de_balisage_issu_des_donnees()
+    {
+        var reader = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "report-reader.html"));
+
+        // Les noms de fichiers d'un rapport viennent de la machine analysee : ce sont des
+        // donnees hostiles (limite L11). Tout doit passer par textContent / createElement.
+        Assert.DoesNotContain("innerHTML", reader, StringComparison.Ordinal);
+        Assert.DoesNotContain("outerHTML", reader, StringComparison.Ordinal);
+        Assert.DoesNotContain("insertAdjacentHTML", reader, StringComparison.Ordinal);
+        Assert.DoesNotContain("document.write", reader, StringComparison.Ordinal);
+        Assert.DoesNotContain("eval(", reader, StringComparison.Ordinal);
+
+        // Traitement entierement local : aucune ressource ni requete externe.
+        Assert.DoesNotContain("http://", reader, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("https://", reader, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("fetch(", reader, StringComparison.Ordinal);
+        Assert.DoesNotContain("XMLHttpRequest", reader, StringComparison.Ordinal);
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

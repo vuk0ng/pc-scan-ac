@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Lecteur de rapport — Scanner Forensic GMod</title>
+<style>
+/* ============================================================================
+   Identite : instrument de mesure, pas console de jeu. Neutres biaises teal.
+   Aucune ressource externe : le fichier doit s'ouvrir sur une machine hors ligne.
+   ========================================================================== */
+:root{
+  --ground:#F2F4F3; --surface:#FFFFFF; --surface-2:#E9EDEB; --surface-3:#DFE5E2;
+  --ink:#141C1B; --ink-2:#4E5C59; --ink-3:#7B8985;
+  --line:#D6DDDA; --line-strong:#B4C0BC;
+  --accent:#265E5C; --accent-2:#3E8582; --accent-soft:#DCE9E7;
+  /* Rampe ORDINALE de gravite : monotone en clarte, donc lisible sous toute
+     forme de daltonisme. « Faible » sort volontairement de la rampe chaude. */
+  --sev-crit:#8E1F26; --sev-high:#B4571C; --sev-med:#A38112; --sev-low:#55707F;
+  --sev-crit-bg:#F7E7E7; --sev-high-bg:#F8ECE0; --sev-med-bg:#F6F0DC; --sev-low-bg:#E6ECEF;
+  --ok:#2F6E5B; --warn:#B4571C; --bad:#8E1F26; --muted:#7B8985;
+  --shadow:0 1px 2px rgba(20,28,27,.06), 0 10px 28px -18px rgba(20,28,27,.4);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D1413; --surface:#141C1B; --surface-2:#1B2524; --surface-3:#233130;
+    --ink:#E2EAE7; --ink-2:#98A7A3; --ink-3:#6E7D79;
+    --line:#243130; --line-strong:#35443F;
+    --accent:#63B4AA; --accent-2:#7FC7BE; --accent-soft:#17302E;
+    --sev-crit:#E4707A; --sev-high:#E58F3F; --sev-med:#CFC77E; --sev-low:#8FAABC;
+    --sev-crit-bg:#2C1A1B; --sev-high-bg:#2B2015; --sev-med-bg:#282516; --sev-low-bg:#1A242A;
+    --ok:#63B4AA; --warn:#E58F3F; --bad:#E4707A; --muted:#6E7D79;
+    --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -20px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D1413; --surface:#141C1B; --surface-2:#1B2524; --surface-3:#233130;
+  --ink:#E2EAE7; --ink-2:#98A7A3; --ink-3:#6E7D79;
+  --line:#243130; --line-strong:#35443F;
+  --accent:#63B4AA; --accent-2:#7FC7BE; --accent-soft:#17302E;
+  --sev-crit:#E4707A; --sev-high:#E58F3F; --sev-med:#CFC77E; --sev-low:#8FAABC;
+  --sev-crit-bg:#2C1A1B; --sev-high-bg:#2B2015; --sev-med-bg:#282516; --sev-low-bg:#1A242A;
+  --ok:#63B4AA; --warn:#E58F3F; --bad:#E4707A; --muted:#6E7D79;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -20px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+/* Un selecteur d'ID (#intake{display:flex}) l'emporte sur le display:none que la
+   feuille de style du navigateur associe a [hidden] : sans cette regle, l'ecran
+   d'accueil reste visible sous le tableau de bord. */
+[hidden]{display:none!important}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Iowan Old Style",Georgia,"Times New Roman",serif;font-weight:600;margin:0;text-wrap:balance}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
+.wrap{max-width:1320px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- ecran d'accueil ---------- */
+#intake{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.intake-card{max-width:720px;width:100%}
+.eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+.intake-card h1{font-size:clamp(30px,5vw,44px);line-height:1.08;letter-spacing:-.02em}
+.intake-card .lede{color:var(--ink-2);margin:16px 0 0;font-size:17px;max-width:60ch}
+#drop{
+  margin-top:28px;border:2px dashed var(--line-strong);border-radius:6px;background:var(--surface);
+  padding:30px;transition:border-color .15s, background .15s
+}
+#drop.over{border-color:var(--accent);background:var(--accent-soft)}
+#json{
+  width:100%;min-height:170px;resize:vertical;background:var(--surface-2);color:var(--ink);
+  border:1px solid var(--line-strong);border-radius:4px;padding:12px;
+  font-family:ui-monospace,monospace;font-size:12.5px;line-height:1.5
+}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.btn{
+  background:transparent;border:1px solid var(--line-strong);border-radius:4px;
+  padding:9px 16px;font-size:14px
+}
+.btn:hover{border-color:var(--accent);background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--ground);font-weight:600}
+.btn.primary:hover{opacity:.88;background:var(--accent)}
+.hint{color:var(--ink-3);font-size:13px;margin-top:16px;max-width:62ch}
+#err{color:var(--bad);font-size:14px;margin-top:12px;display:none;white-space:pre-wrap}
+
+/* ---------- entete du rapport ---------- */
+header.report{padding:34px 0 22px;border-bottom:1px solid var(--line-strong)}
+.hgrid{display:flex;gap:14px 40px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
+header.report h1{font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em}
+.meta{display:flex;flex-wrap:wrap;gap:6px 26px;margin-top:14px;font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3)}
+.meta b{color:var(--ink);font-weight:600}
+.badge{
+  display:inline-block;font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;padding:4px 9px;border-radius:3px;white-space:nowrap
+}
+.badge.warn{background:var(--sev-high-bg);color:var(--sev-high)}
+.disclaimer{
+  margin:18px 0 0;padding:14px 18px;border-left:3px solid var(--sev-high);
+  background:var(--sev-high-bg);color:var(--ink);border-radius:0 4px 4px 0;font-size:14px
+}
+
+/* ---------- sections ---------- */
+section{margin-top:44px;scroll-margin-top:20px}
+.sec-title{display:flex;align-items:baseline;gap:14px;margin-bottom:16px}
+.sec-title h2{font-size:20px;letter-spacing:-.01em}
+.sec-title .count{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:22px}
+
+/* ---------- score ---------- */
+.scorewrap{display:grid;gap:16px}
+@media(min-width:900px){.scorewrap{grid-template-columns:minmax(280px,1fr) 1.4fr}}
+.hero{display:flex;align-items:flex-start;gap:22px}
+.hero .num{font-size:76px;line-height:.9;font-weight:600;font-family:"Iowan Old Style",Georgia,serif;font-variant-numeric:tabular-nums}
+.hero .of{font-size:17px;color:var(--ink-3);align-self:flex-end;padding-bottom:12px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.tile{background:var(--surface);padding:16px 14px}
+.tile .k{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.tile .v{font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:4px}
+
+/* ---------- barres de contribution (serie unique, teinte sequentielle) ---------- */
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:150px 1fr 46px;gap:12px;align-items:center;font-size:13.5px}
+.bar .lbl{color:var(--ink-2);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .track{background:var(--surface-2);border-radius:3px;height:16px;position:relative;overflow:hidden}
+.bar .fill{height:100%;border-radius:0 3px 3px 0;background:var(--accent);min-width:2px}
+.bar .val{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.bar .track[data-cap="1"]::after{
+  content:"";position:absolute;inset:0 0 0 auto;width:2px;background:var(--sev-high)
+}
+
+/* ---------- modules ---------- */
+.mods{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+@media(min-width:760px){.mods{grid-template-columns:1fr 1fr}}
+.mod{background:var(--surface);padding:13px 16px;display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:baseline}
+.mod .sym{font-size:15px}
+.mod .nm{font-weight:600;font-size:14px}
+.mod .why{color:var(--ink-3);font-size:12.5px;grid-column:2/-1;margin-top:2px}
+.mod .n{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* ---------- filtres ---------- */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+select,input[type=search]{
+  background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);
+  border-radius:4px;padding:8px 10px;font:inherit;font-size:13.5px
+}
+input[type=search]{flex:1;min-width:200px}
+
+/* ---------- detections ---------- */
+.split{display:grid;gap:16px}
+@media(min-width:1040px){.split{grid-template-columns:1.15fr 1fr;align-items:start}}
+.list{display:flex;flex-direction:column;gap:6px;max-height:640px;overflow-y:auto;padding-right:4px}
+.det{
+  display:grid;grid-template-columns:4px 1fr;gap:0;background:var(--surface);
+  border:1px solid var(--line);border-radius:4px;overflow:hidden;text-align:left;width:100%;padding:0;
+  /* Sans flex:0 0 auto, le conteneur a hauteur maximale comprime les cartes
+     et tronque le nom et le chemin de chaque indicateur. */
+  flex:0 0 auto
+}
+.det:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.det[aria-selected="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.det .stripe{background:var(--muted)}
+.det .body{padding:11px 14px;min-width:0}
+.det .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.det .nm{margin-top:4px;font-weight:600;font-size:14px}
+.det .pth{margin-top:3px;font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:3px 7px;border-radius:3px;white-space:nowrap}
+.detail h3{font-size:18px;margin-bottom:6px}
+.detail .kv{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-2);word-break:break-all}
+.rule{height:1px;background:var(--line);margin:16px 0}
+.lbl{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.contrib{display:grid;grid-template-columns:44px 1fr;gap:10px;font-size:13.5px;padding:3px 0}
+.contrib .p{font-family:ui-monospace,monospace;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.total{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-weight:600}
+.fp{background:var(--sev-high-bg);border-left:3px solid var(--sev-high);padding:12px 14px;border-radius:0 4px 4px 0;font-size:13.5px}
+.ev{background:var(--surface-2);border-radius:4px;padding:12px;margin-top:8px;font-size:12.5px}
+.ev .k{font-family:ui-monospace,monospace;font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em}
+
+/* ---------- chronologie ---------- */
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line-strong)}
+.tlitem{position:relative;padding:7px 0;display:grid;grid-template-columns:168px 1fr;gap:14px;font-size:13.5px}
+.tlitem::before{content:"";position:absolute;left:-21px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--line-strong);border:2px solid var(--surface)}
+.tlitem[data-sev]::before{background:var(--muted)}
+.tlitem .t{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* ---------- tables et journaux ---------- */
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:5px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:620px}
+th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+pre.log{
+  margin:0;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:16px;
+  font-family:ui-monospace,monospace;font-size:12px;line-height:1.65;color:var(--ink-2);
+  max-height:340px;overflow:auto;white-space:pre-wrap;word-break:break-word
+}
+details{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:14px 18px;margin-top:10px}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+details[open] summary{margin-bottom:12px}
+.empty{color:var(--ink-3);font-size:14px;padding:26px;text-align:center}
+
+footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line-strong);font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-3);display:flex;gap:10px 26px;flex-wrap:wrap}
+@media print{
+  body{background:#fff}
+  .filters,#intake,.btn,.list{display:none}
+  section{break-inside:avoid}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ====================== Ecran de chargement ====================== -->
+<div id="intake">
+  <div class="intake-card">
+    <p class="eyebrow">Scanner Forensic GMod · lecteur de rapport</p>
+    <h1>Coller un rapport, obtenir un tableau de bord</h1>
+    <p class="lede">Collez le contenu de <span class="mono">rapport.json</span>, ou déposez le fichier
+      ci-dessous. Rien n'est envoyé nulle part : la lecture se fait entièrement dans votre navigateur.</p>
+
+    <div id="drop">
+      <textarea id="json" spellcheck="false" placeholder='{ "schemaVersion": "0.4", "metadata": { ... } }'></textarea>
+      <div class="row">
+        <button class="btn primary" id="load">Afficher le rapport</button>
+        <button class="btn" id="pick">Choisir un fichier…</button>
+        <input type="file" id="file" accept=".json,application/json" hidden>
+        <button class="btn" id="demo">Charger un exemple</button>
+      </div>
+      <div id="err" role="alert"></div>
+    </div>
+
+    <p class="hint">Ce lecteur n'exécute rien et n'accède à aucun réseau. Les noms de fichiers d'un
+      rapport proviennent de la machine analysée : ils sont traités comme du texte, jamais comme du
+      code. Le fichier fonctionne hors ligne — enregistrez-le et ouvrez-le par double-clic.</p>
+  </div>
+</div>
+
+<!-- ====================== Tableau de bord ====================== -->
+<div class="wrap" id="dash" hidden>
+
+  <header class="report">
+    <div class="hgrid">
+      <div>
+        <p class="eyebrow">Rapport d'analyse forensic</p>
+        <h1 id="subject"></h1>
+        <div class="meta" id="meta"></div>
+      </div>
+      <div class="row" style="margin:0">
+        <button class="btn" id="reset">Charger un autre rapport</button>
+        <button class="btn" id="print">Imprimer / PDF</button>
+      </div>
+    </div>
+    <p class="disclaimer" id="disclaimer"></p>
+  </header>
+
+  <section id="s-score">
+    <div class="sec-title"><h2>Score global</h2><span class="count" id="coverage"></span></div>
+    <div class="scorewrap">
+      <div class="card">
+        <div class="hero">
+          <div class="num" id="score"></div>
+          <div class="of">/ 100</div>
+        </div>
+        <div style="margin-top:10px">
+          <div id="band" style="font-weight:600;font-size:17px"></div>
+          <div id="guidance" style="color:var(--ink-2);font-size:14px;margin-top:3px"></div>
+        </div>
+      </div>
+      <div>
+        <div class="tiles" id="tiles"></div>
+        <div class="card" style="margin-top:16px">
+          <div class="lbl">Contribution par catégorie — plafonnée à 60</div>
+          <div class="bars" id="bars"></div>
+          <p style="color:var(--ink-3);font-size:12.5px;margin:14px 0 0">
+            Le score global n'est pas une somme : les contributions se combinent de façon saturante, et
+            aucune catégorie ne peut le porter seule. Un score élevé exige des sources de natures
+            différentes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-modules">
+    <div class="sec-title"><h2>Modules</h2><span class="count" id="modcount"></span></div>
+    <div class="mods" id="mods"></div>
+  </section>
+
+  <section id="s-det">
+    <div class="sec-title"><h2>Indicateurs</h2><span class="count" id="detcount"></span></div>
+    <div class="filters">
+      <select id="fsev"></select>
+      <select id="fcat"></select>
+      <input type="search" id="fq" placeholder="Rechercher un nom, un chemin, une source…">
+      <button class="btn" id="fclear">Réinitialiser</button>
+    </div>
+    <div class="split">
+      <div class="list" id="list"></div>
+      <div class="card detail" id="detail"></div>
+    </div>
+  </section>
+
+  <section id="s-tl">
+    <div class="sec-title"><h2>Chronologie</h2><span class="count" id="tlcount"></span></div>
+    <div class="card"><div class="tl" id="tl"></div></div>
+  </section>
+
+  <section id="s-raw">
+    <div class="sec-title"><h2>Données brutes</h2><span class="count">tout ce qui a été collecté</span></div>
+    <details><summary id="obs-sum">Observations</summary><div class="scroll"><table id="obs"></table></div></details>
+    <details><summary id="log-sum">Journal d'exécution</summary><pre class="log" id="log"></pre></details>
+    <details><summary id="acc-sum">Journal d'accès — ressources réellement lues</summary><div class="scroll"><table id="acc"></table></div></details>
+  </section>
+
+  <footer>
+    <span id="fver"></span>
+    <span>Lecture locale · aucune donnée transmise</span>
+    <span>Ce rapport recense des indicateurs, jamais des preuves</span>
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ============================================================================
+   REGLE DE SECURITE DU LECTEUR
+   Les noms de fichiers, chemins et sources d'un rapport proviennent de la
+   machine analysee : ce sont des donnees HOSTILES. Tout passe donc par
+   textContent ou createElement. Aucune valeur issue du rapport n'est jamais
+   inseree sous forme de balisage, nulle part dans ce fichier — un test de la
+   suite echoue si une API d'injection de balisage y apparait.
+   ========================================================================== */
+
+const $ = (id) => document.getElementById(id);
+
+/** Cree un element, en n'ecrivant jamais de balisage issu des donnees. */
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined && text !== null) node.textContent = String(text);
+  return node;
+}
+
+const SEV = {
+  Critical: { label: "CRITIQUE", tone: "crit", rank: 4 },
+  High:     { label: "ÉLEVÉ",    tone: "high", rank: 3 },
+  Medium:   { label: "MOYEN",    tone: "med",  rank: 2 },
+  Low:      { label: "FAIBLE",   tone: "low",  rank: 1 },
+  Info:     { label: "INFO",     tone: "low",  rank: 0 },
+};
+const sev = (s) => SEV[s] || { label: String(s || "?").toUpperCase(), tone: "low", rank: 0 };
+const sevColor = (s) => `var(--sev-${sev(s).tone})`;
+const sevBg = (s) => `var(--sev-${sev(s).tone}-bg)`;
+
+const CONF = { High: "Confiance élevée", Medium: "Confiance moyenne", Low: "Confiance faible" };
+
+const STATUS = {
+  Success:   { sym: "✓", label: "Réussi",      color: "var(--ok)" },
+  Partial:   { sym: "⚠", label: "Partiel",     color: "var(--warn)" },
+  Failed:    { sym: "✕", label: "Impossible",  color: "var(--bad)" },
+  Skipped:   { sym: "○", label: "Ignoré",      color: "var(--muted)" },
+  Cancelled: { sym: "⊘", label: "Annulé",      color: "var(--muted)" },
+};
+
+function fmtDate(iso) {
+  if (!iso) return "date inconnue";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} `
+       + `${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC`;
+}
+
+let report = null;
+let selectedId = null;
+
+/* ------------------------------ chargement ------------------------------ */
+
+function fail(message) {
+  const box = $("err");
+  box.textContent = message;
+  box.style.display = "block";
+}
+
+function load(text) {
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    fail("Ce n'est pas du JSON valide.\n" + e.message);
+    return;
+  }
+  if (!data || typeof data !== "object" || !data.metadata || !data.score) {
+    fail("JSON lu, mais ce n'est pas un rapport du scanner : les sections « metadata » et « score » manquent.");
+    return;
+  }
+  report = data;
+  $("err").style.display = "none";
+  $("intake").hidden = true;
+  $("dash").hidden = false;
+  render();
+  window.scrollTo(0, 0);
+}
+
+/* ------------------------------- rendu ---------------------------------- */
+
+function render() {
+  const m = report.metadata || {};
+  const s = report.score || {};
+
+  $("subject").textContent = m.subjectIdentifier
+    ? `Sujet : ${m.subjectIdentifier}`
+    : "Rapport sans identifiant de sujet";
+
+  const meta = $("meta");
+  meta.textContent = "";
+  const facts = [
+    ["Staff", m.operatorName || "non renseigné"],
+    ["Généré", fmtDate(m.generatedUtc)],
+    ["Machine", m.machineName || "?"],
+    ["Durée", `${Number(m.elapsedSeconds || 0).toFixed(1)} s`],
+    ["Consentement", m.consentGiven ? "recueilli" : "NON RECUEILLI"],
+    ["Version", m.scannerVersion || "?"],
+    ["Schéma", report.schemaVersion || "?"],
+  ];
+  for (const [k, v] of facts) {
+    const span = el("span");
+    span.appendChild(el("b", null, k + " "));
+    span.appendChild(document.createTextNode(v));
+    meta.appendChild(span);
+  }
+  if (m.wasCancelled) {
+    meta.appendChild(el("span", "badge warn", "scan interrompu — couverture incomplète"));
+  }
+
+  $("disclaimer").textContent = report.disclaimer
+    || "Ce document recense des indicateurs. Aucun élément ne constitue à lui seul une preuve.";
+  $("coverage").textContent = m.coverageWindow ? `Couverture : ${m.coverageWindow}` : "";
+  $("fver").textContent = `Scanner ${m.scannerVersion || "?"} · schéma ${report.schemaVersion || "?"}`;
+
+  // Score
+  $("score").textContent = s.value ?? 0;
+  $("score").style.color = scoreColor(s.value ?? 0);
+  $("band").textContent = s.label || "";
+  $("band").style.color = scoreColor(s.value ?? 0);
+  $("guidance").textContent = s.guidance || "";
+
+  const tiles = $("tiles");
+  tiles.textContent = "";
+  for (const [key, name] of [["critical", "Critiques"], ["high", "Élevés"], ["medium", "Moyens"], ["low", "Faibles"]]) {
+    const tile = el("div", "tile");
+    tile.appendChild(el("div", "k", name));
+    const value = el("div", "v", s[key] ?? 0);
+    value.style.color = `var(--sev-${key === "critical" ? "crit" : key === "high" ? "high" : key === "medium" ? "med" : "low"})`;
+    tile.appendChild(value);
+    tiles.appendChild(tile);
+  }
+
+  renderBars();
+  renderModules();
+  buildFilters();
+  applyFilter();
+  renderTimeline();
+  renderRaw();
+}
+
+function scoreColor(v) {
+  if (v >= 80) return "var(--sev-crit)";
+  if (v >= 60) return "var(--sev-high)";
+  if (v >= 40) return "var(--sev-med)";
+  return "var(--sev-low)";
+}
+
+/**
+ * Contribution par categorie : UNE seule serie, donc teinte sequentielle unique
+ * et pas de legende. La valeur est ecrite en clair a cote de chaque barre —
+ * la couleur ne porte jamais l'information seule.
+ */
+function renderBars() {
+  const host = $("bars");
+  host.textContent = "";
+
+  const byCategory = (report.score && report.score.byCategory) || {};
+  const rows = Object.entries(byCategory)
+    .filter(([, v]) => typeof v === "number")
+    .sort((a, b) => b[1] - a[1]);
+  if (rows.length === 0) {
+    host.appendChild(el("div", "empty", "Aucune catégorie — aucun indicateur retenu."));
+    return;
+  }
+
+  const max = Math.max(60, ...rows.map((r) => r[1]));
+  for (const [name, value] of rows) {
+    const row = el("div", "bar");
+    row.appendChild(el("div", "lbl", name));
+
+    const track = el("div", "track");
+    track.title = `${name} : ${value} points`;
+    if (value >= 60) track.dataset.cap = "1";
+    const fill = el("div", "fill");
+    fill.style.width = `${Math.max(2, (value / max) * 100)}%`;
+    track.appendChild(fill);
+    row.appendChild(track);
+
+    row.appendChild(el("div", "val", value));
+    host.appendChild(row);
+  }
+}
+
+function renderModules() {
+  const host = $("mods");
+  host.textContent = "";
+  const mods = report.modules || [];
+  $("modcount").textContent = `${mods.length} module(s)`;
+
+  if (mods.length === 0) {
+    host.appendChild(el("div", "empty", "Aucun module dans ce rapport."));
+    return;
+  }
+
+  for (const mod of mods) {
+    const st = STATUS[mod.status] || { sym: "·", label: mod.status || "?", color: "var(--muted)" };
+    const row = el("div", "mod");
+
+    const sym = el("div", "sym", st.sym);
+    sym.style.color = st.color;
+    row.appendChild(sym);
+
+    const name = el("div", "nm", mod.moduleId || "?");
+    row.appendChild(name);
+
+    row.appendChild(el("div", "n", `${mod.itemsExamined ?? 0} éléments`));
+
+    // Le libelle texte double systematiquement le symbole et la couleur.
+    const why = el("div", "why", mod.statusReason ? `${st.label} — ${mod.statusReason}` : st.label);
+    row.appendChild(why);
+
+    host.appendChild(row);
+  }
+}
+
+/* ------------------------------ filtres --------------------------------- */
+
+function buildFilters() {
+  const dets = report.detections || [];
+
+  const fsev = $("fsev");
+  fsev.textContent = "";
+  fsev.appendChild(new Option("Toutes gravités", ""));
+  for (const key of ["Critical", "High", "Medium", "Low"]) {
+    if (dets.some((d) => d.severity === key)) fsev.appendChild(new Option(sev(key).label, key));
+  }
+
+  const fcat = $("fcat");
+  fcat.textContent = "";
+  fcat.appendChild(new Option("Toutes catégories", ""));
+  for (const c of [...new Set(dets.map((d) => d.category))].sort()) {
+    fcat.appendChild(new Option(c, c));
+  }
+}
+
+function applyFilter() {
+  const wantedSeverity = $("fsev").value;
+  const wantedCategory = $("fcat").value;
+  const query = $("fq").value.trim().toLowerCase();
+
+  const rows = (report.detections || []).filter((d) => {
+    if (wantedSeverity && d.severity !== wantedSeverity) return false;
+    if (wantedCategory && d.category !== wantedCategory) return false;
+    if (!query) return true;
+    const haystack = [d.name, d.path, d.source, d.ruleId, d.category, d.description]
+      .filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(query);
+  });
+
+  rows.sort((a, b) => (sev(b.severity).rank - sev(a.severity).rank)
+    || ((b.score?.total || 0) - (a.score?.total || 0)));
+
+  renderList(rows);
+  $("detcount").textContent =
+    `${rows.length} affiché(s) sur ${(report.detections || []).length}`;
+}
+
+function renderList(rows) {
+  const host = $("list");
+  host.textContent = "";
+
+  if (rows.length === 0) {
+    host.appendChild(el("div", "empty",
+      (report.detections || []).length === 0
+        ? "Aucun indicateur retenu sur la fenêtre couverte."
+        : "Aucun indicateur ne correspond au filtre courant."));
+    renderDetail(null);
+    return;
+  }
+
+  for (const d of rows) {
+    const btn = el("button", "det");
+    btn.type = "button";
+    btn.setAttribute("aria-selected", String(d.id === selectedId));
+
+    const stripe = el("div", "stripe");
+    stripe.style.background = sevColor(d.severity);
+    btn.appendChild(stripe);
+
+    const body = el("div", "body");
+    const top = el("div", "top");
+
+    const chip = el("span", "chip", sev(d.severity).label);
+    chip.style.color = sevColor(d.severity);
+    chip.style.background = sevBg(d.severity);
+    top.appendChild(chip);
+    top.appendChild(el("span", "chip mono", d.category || "?"));
+    top.appendChild(el("span", "chip mono", `${d.score?.total ?? 0}/100`));
+    body.appendChild(top);
+
+    body.appendChild(el("div", "nm", d.name || "(sans nom)"));
+    if (d.path) body.appendChild(el("div", "pth", d.path));
+    btn.appendChild(body);
+
+    btn.addEventListener("click", () => {
+      selectedId = d.id;
+      renderDetail(d);
+      for (const other of host.querySelectorAll(".det")) other.setAttribute("aria-selected", "false");
+      btn.setAttribute("aria-selected", "true");
+    });
+
+    host.appendChild(btn);
+  }
+
+  const current = rows.find((r) => r.id === selectedId) || rows[0];
+  selectedId = current.id;
+  host.firstElementChild.setAttribute("aria-selected", "true");
+  renderDetail(current);
+}
+
+function renderDetail(d) {
+  const host = $("detail");
+  host.textContent = "";
+
+  if (!d) {
+    host.appendChild(el("div", "empty", "Sélectionnez un indicateur pour voir son détail."));
+    return;
+  }
+
+  const chip = el("span", "chip", sev(d.severity).label);
+  chip.style.color = sevColor(d.severity);
+  chip.style.background = sevBg(d.severity);
+  const head = el("div", "top");
+  head.appendChild(chip);
+  head.appendChild(el("span", "chip mono", CONF[d.confidence] || d.confidence || "?"));
+  head.appendChild(el("span", "chip mono", d.ruleId || ""));
+  host.appendChild(head);
+
+  host.appendChild(el("h3", null, d.name || "(sans nom)"));
+  host.appendChild(el("p", null, d.explanation || d.description || ""));
+
+  host.appendChild(el("div", "rule"));
+  host.appendChild(el("div", "lbl", "Pourquoi ce score"));
+  for (const c of (d.score?.contributions || [])) {
+    const line = el("div", "contrib");
+    line.appendChild(el("div", "p", (c.points > 0 ? "+" : "") + c.points));
+    line.appendChild(el("div", null, c.label || c.ruleId || ""));
+    host.appendChild(line);
+  }
+  const total = el("div", "contrib total");
+  total.appendChild(el("div", "p", d.score?.total ?? 0));
+  total.appendChild(el("div", null, "sur 100 pour cet indicateur"));
+  host.appendChild(total);
+
+  host.appendChild(el("div", "rule"));
+  host.appendChild(el("div", "lbl", "Causes légitimes possibles"));
+  host.appendChild(el("div", "fp", d.falsePositiveNote || "Non documentées."));
+
+  host.appendChild(el("div", "rule"));
+  host.appendChild(el("div", "lbl", "Élément concerné"));
+  host.appendChild(el("div", "kv", d.path || "(sans chemin)"));
+  host.appendChild(el("div", "kv", fmtDate(d.timestamp)));
+  host.appendChild(el("div", "kv", `Source : ${d.source || "?"}`));
+
+  if ((d.evidence || []).length > 0) {
+    host.appendChild(el("div", "rule"));
+    host.appendChild(el("div", "lbl", "Preuve brute"));
+    for (const e of d.evidence) {
+      const box = el("div", "ev");
+      box.appendChild(el("div", "k", e.kind || "?"));
+      box.appendChild(el("div", "kv", e.locator || ""));
+      if (e.rawText) {
+        const raw = el("div", "mono", e.rawText);
+        raw.style.marginTop = "6px";
+        raw.style.wordBreak = "break-word";
+        box.appendChild(raw);
+        if (e.originalLength && e.rawText.length < e.originalLength) {
+          box.appendChild(el("div", "k", `tronqué — longueur d'origine ${e.originalLength}`));
+        }
+      }
+      if (e.verificationHint) {
+        const hint = el("div", null, e.verificationHint);
+        hint.style.color = "var(--ink-3)";
+        hint.style.marginTop = "6px";
+        hint.style.fontSize = "12.5px";
+        box.appendChild(hint);
+      }
+      host.appendChild(box);
+    }
+  }
+}
+
+/* ---------------------------- chronologie ------------------------------- */
+
+function renderTimeline() {
+  const host = $("tl");
+  host.textContent = "";
+
+  const events = [];
+  for (const d of (report.detections || [])) {
+    if (d.timestamp) events.push({ t: d.timestamp, sev: d.severity, text: d.name, sub: d.path, src: d.source });
+  }
+  for (const o of (report.observations || [])) {
+    if (o.timestamp) events.push({ t: o.timestamp, sev: null, text: o.kind, sub: o.subject?.fullPath || o.secondaryPath || "", src: o.source });
+  }
+  events.sort((a, b) => new Date(b.t) - new Date(a.t));
+
+  $("tlcount").textContent = `${events.length} événement(s) horodaté(s), du plus récent au plus ancien`;
+
+  if (events.length === 0) {
+    host.appendChild(el("div", "empty", "Aucun événement horodaté dans ce rapport."));
+    return;
+  }
+
+  for (const e of events.slice(0, 400)) {
+    const item = el("div", "tlitem");
+    if (e.sev) {
+      item.dataset.sev = e.sev;
+      item.style.setProperty("--muted", sevColor(e.sev));
+    }
+    item.appendChild(el("div", "t", fmtDate(e.t)));
+
+    const body = el("div");
+    const line = el("div", null, e.text || "");
+    if (e.sev) line.style.fontWeight = "600";
+    body.appendChild(line);
+    if (e.sub) {
+      const sub = el("div", "mono", e.sub);
+      sub.style.fontSize = "11.5px";
+      sub.style.color = "var(--ink-3)";
+      body.appendChild(sub);
+    }
+    if (e.src) {
+      const src = el("div", null, e.src);
+      src.style.fontSize = "12px";
+      src.style.color = "var(--ink-3)";
+      body.appendChild(src);
+    }
+    item.appendChild(body);
+    host.appendChild(item);
+  }
+}
+
+/* ---------------------------- donnees brutes ---------------------------- */
+
+function table(host, columns, rows, cell) {
+  host.textContent = "";
+  const thead = el("thead");
+  const hr = el("tr");
+  for (const c of columns) hr.appendChild(el("th", null, c));
+  thead.appendChild(hr);
+  host.appendChild(thead);
+
+  const tbody = el("tbody");
+  for (const r of rows) {
+    const tr = el("tr");
+    for (const value of cell(r)) tr.appendChild(el("td", null, value));
+    tbody.appendChild(tr);
+  }
+  host.appendChild(tbody);
+}
+
+function renderRaw() {
+  const observations = report.observations || [];
+  $("obs-sum").textContent = `Observations — ${observations.length} fait(s) collecté(s)`;
+  table($("obs"),
+    ["Horodatage", "Module", "Type", "Sujet", "Source"],
+    observations.slice(0, 2000),
+    (o) => [fmtDate(o.timestamp), o.moduleId || "", o.kind || "",
+            o.subject?.fullPath || o.subject?.fileName || o.secondaryPath || "", o.source || ""]);
+
+  const log = report.executionLog || [];
+  $("log-sum").textContent = `Journal d'exécution — ${log.length} ligne(s)`;
+  $("log").textContent = log.join("\n") || "(vide)";
+
+  const access = report.accessLog || [];
+  $("acc-sum").textContent = `Journal d'accès — ${access.length} ressource(s) réellement lue(s)`;
+  table($("acc"),
+    ["Horodatage", "Module", "Type", "Ressource"],
+    access.slice(0, 2000),
+    (a) => [fmtDate(a.timestamp), a.moduleId || "", a.resourceKind || "", a.resource || ""]);
+}
+
+/* ------------------------------ evenements ------------------------------ */
+
+$("load").addEventListener("click", () => {
+  const text = $("json").value.trim();
+  if (!text) { fail("Collez d'abord le contenu du rapport."); return; }
+  load(text);
+});
+
+$("pick").addEventListener("click", () => $("file").click());
+
+$("file").addEventListener("change", (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) f.text().then(load).catch(() => fail("Lecture du fichier impossible."));
+});
+
+const drop = $("drop");
+for (const type of ["dragenter", "dragover"]) {
+  drop.addEventListener(type, (e) => { e.preventDefault(); drop.classList.add("over"); });
+}
+for (const type of ["dragleave", "drop"]) {
+  drop.addEventListener(type, (e) => { e.preventDefault(); drop.classList.remove("over"); });
+}
+drop.addEventListener("drop", (e) => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) f.text().then(load).catch(() => fail("Lecture du fichier impossible."));
+});
+
+$("reset").addEventListener("click", () => {
+  $("dash").hidden = true;
+  $("intake").hidden = false;
+  selectedId = null;
+  window.scrollTo(0, 0);
+});
+
+$("print").addEventListener("click", () => window.print());
+
+for (const id of ["fsev", "fcat"]) $(id).addEventListener("change", applyFilter);
+$("fq").addEventListener("input", applyFilter);
+$("fclear").addEventListener("click", () => {
+  $("fsev").value = ""; $("fcat").value = ""; $("fq").value = "";
+  applyFilter();
+});
+
+$("demo").addEventListener("click", () => {
+  $("json").value = JSON.stringify(SAMPLE, null, 2);
+  load($("json").value);
+});
+
+/* Exemple minimal, pour decouvrir le lecteur sans avoir lance de scan. */
+const SAMPLE = {"schemaVersion":"0.4","disclaimer":"Ce document recense des indicateurs. Aucun element ci-dessous ne constitue a lui seul une preuve d'utilisation de cheat. Toute conclusion doit reposer sur une verification manuelle.","metadata":{"scanId":"exemple","generatedUtc":"2026-08-28T14:32:02.9203316+00:00","scannerVersion":"0.4.0","machineName":"PC-JOUEUR","operatorName":"staff.durand","subjectIdentifier":"joueur#4412","consentGiven":true,"wasCancelled":false,"elapsedSeconds":0.034635,"coverageWindow":"2026-08-14 -> 2026-08-28 (14 j, journal USN sur C:)"},"score":{"value":90,"label":"Indicateurs tres eleves","guidance":"Faisceau d'indicateurs concordants — verification manuelle prioritaire","critical":2,"high":3,"medium":2,"low":5,"byCategory":{"UsnJournal":60,"EventLog":50,"Downloads":21,"RemovableDevices":12,"Prefetch":10,"AntiForensic":10,"FileSystem":4,"RecentFiles":2,"Archives":2,"Processes":2}},"modules":[{"moduleId":"registre","status":"Success","symbol":"✓","itemsExamined":12,"observations":2,"elapsedSeconds":9.49e-05,"diagnostics":[]},{"moduleId":"prefetch","status":"Success","symbol":"✓","itemsExamined":40,"observations":3,"elapsedSeconds":0.0020046,"diagnostics":[]},{"moduleId":"usn","status":"Success","symbol":"✓","itemsExamined":900,"observations":1,"elapsedSeconds":0.0001673,"diagnostics":[]}],"detections":[{"id":"d5d9a4ee26964a079bafe864a2e82870","ruleId":"DEMO.EXECUTED_THEN_ERASED","category":"UsnJournal","severity":"Critical","confidence":"High","name":"Executable lance puis efface","description":"Un executable a laisse une trace d'execution dans le Prefetch, puis a ete renomme et supprime moins de trois minutes plus tard. Trois sources independantes concordent sur le meme fichier.","path":"C:\\Users\\joueur\\AppData\\Local\\Temp\\WindowsUpdate.exe","timestamp":"2026-08-26T19:14:02.8380536+00:00","source":"Journal USN (C:) + Prefetch","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\AppData\\Local\\Temp\\WindowsUpdate.exe","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"PREFETCH_PRESENT","label":"Trace d'execution trouvee dans le Prefetch","points":15},{"ruleId":"USN_DELETED","label":"Suppression confirmee par le journal USN","points":15},{"ruleId":"RENAMED_BEFORE_DELETE","label":"Renomme « cheat_loader.exe » -> « WindowsUpdate.exe »","points":20},{"ruleId":"USER_TEMP_PATH","label":"Situe dans un dossier temporaire utilisateur","points":10}],"total":60},"explanation":"Un executable a laisse une trace d'execution dans le Prefetch, puis a ete renomme et supprime moins de trois minutes plus tard. Trois sources independantes concordent sur le meme fichier.","falsePositiveNote":"Un desinstalleur ou un installeur temporaire produit la meme sequence. Verifier le nom d'origine et l'editeur avant toute conclusion.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"82d6a888727442d2afc47a022aa91838","ruleId":"DEMO.KERNEL_DRIVER_ATTEMPT","category":"EventLog","severity":"Critical","confidence":"High","name":"Chargement de pilote bloque par CodeIntegrity","description":"Windows a refuse de charger une image dont la signature est invalide. C'est la trace la plus directe d'une tentative de chargement d'un composant noyau non signe.","path":"C:\\Users\\joueur\\Downloads\\drv64.sys","timestamp":"2026-08-26T03:24:02.8388077+00:00","source":"Microsoft-Windows-CodeIntegrity/Operational (3033)","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\Downloads\\drv64.sys","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"CODEINTEGRITY_BLOCK","label":"Chargement d'image bloque, signature invalide","points":50}],"total":50},"explanation":"Windows a refuse de charger une image dont la signature est invalide. C'est la trace la plus directe d'une tentative de chargement d'un composant noyau non signe.","falsePositiveNote":"Un pilote materiel ancien ou mal signe declenche le meme evenement. Verifier l'editeur du fichier.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"3cff849edceb4686abe10b224950204e","ruleId":"DEMO.RENAMED_TO_SYSTEM_LOOKALIKE","category":"UsnJournal","severity":"High","confidence":"Medium","name":"Fichier renomme en nom de binaire systeme","description":"Un fichier a ete renomme en « svchost.exe » hors de System32. Le nom d'un binaire systeme utilise ailleurs que dans son emplacement legitime est un motif de dissimulation courant.","path":"C:\\Users\\joueur\\AppData\\Local\\Temp\\svchost.exe","timestamp":"2026-08-26T05:44:02.8388138+00:00","source":"Journal USN (C:)","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\AppData\\Local\\Temp\\svchost.exe","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"SYSTEM_LOOKALIKE","label":"Nom de binaire systeme hors de System32","points":30}],"total":30},"explanation":"Un fichier a ete renomme en « svchost.exe » hors de System32. Le nom d'un binaire systeme utilise ailleurs que dans son emplacement legitime est un motif de dissimulation courant.","falsePositiveNote":"Certains outils de developpement et bacs a sable creent des copies nommees ainsi pour des tests.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"724491dff4f447f19b33b44a51cc0254","ruleId":"DEMO.DOWNLOAD_FROM_CDN","category":"Downloads","severity":"High","confidence":"Medium","name":"Executable telecharge depuis un CDN de messagerie","description":"Le flux Zone.Identifier du fichier indique une origine cdn.discordapp.com. L'URL source exacte est conservee comme preuve, sans avoir eu a lire la moindre donnee de Discord.","path":"C:\\Users\\joueur\\Downloads\\gmod_helper.dll","timestamp":"2026-08-28T12:37:02.8388149+00:00","source":"Flux Zone.Identifier (HostUrl)","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\Downloads\\gmod_helper.dll","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"ZONE_CDN_ORIGIN","label":"Origine cdn.discordapp.com confirmee par Zone.Identifier","points":20},{"ruleId":"EXECUTABLE_EXTENSION","label":"Extension executable","points":10}],"total":30},"explanation":"Le flux Zone.Identifier du fichier indique une origine cdn.discordapp.com. L'URL source exacte est conservee comme preuve, sans avoir eu a lire la moindre donnee de Discord.","falsePositiveNote":"Le partage de fichiers legitimes (mods, addons, outils) via Discord est massivement courant. Seule la nature du fichier telecharge compte.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"28dfc23294a640a096f065969fe3d2a5","ruleId":"DEMO.USB_TRANSFER_WINDOW","category":"RemovableDevices","severity":"High","confidence":"Low","name":"Creations de fichiers juste apres une connexion USB","description":"Une cle USB a ete connectee, puis onze fichiers ont ete crees dans les cinq minutes. La correlation temporelle est etablie ; elle ne dit rien du contenu transfere.","path":"C:\\Users\\joueur\\Desktop\\build\\","timestamp":"2026-08-26T10:07:02.8388158+00:00","source":"Registre USBSTOR + journal USN (C:)","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\Desktop\\build\\","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"USB_THEN_CREATE","label":"Connexion USB suivie de creations de fichiers","points":30}],"total":30},"explanation":"Une cle USB a ete connectee, puis onze fichiers ont ete crees dans les cinq minutes. La correlation temporelle est etablie ; elle ne dit rien du contenu transfere.","falsePositiveNote":"Copier des fichiers depuis une cle USB est parfaitement banal. Cet indicateur n'a de valeur qu'associe a la nature des fichiers crees.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"51b990db7b6445c09e6edc51f4a64eb5","ruleId":"DEMO.PREFETCH_ORPHAN","category":"Prefetch","severity":"Medium","confidence":"Medium","name":"Trace Prefetch sans executable correspondant","description":"Un fichier Prefetch atteste de deux executions, mais l'executable n'existe plus sur le disque.","path":"C:\\Windows\\Prefetch\\INJECTOR.EXE-2B7F1A44.pf","timestamp":"2026-08-26T19:08:02.8388287+00:00","source":"Prefetch","evidence":[{"kind":"Demo","locator":"C:\\Windows\\Prefetch\\INJECTOR.EXE-2B7F1A44.pf","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"PREFETCH_ORPHAN","label":"Prefetch present, executable absent","points":15}],"total":15},"explanation":"Un fichier Prefetch atteste de deux executions, mais l'executable n'existe plus sur le disque.","falsePositiveNote":"Les installeurs et desinstalleurs laissent normalement des traces Prefetch orphelines. Le chemin d'origine et la correlation USN font la difference.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"9c71be4406584fcda9880ab7e4d5fb10","ruleId":"DEMO.ANTIFORENSIC_USN_RESET","category":"AntiForensic","severity":"Medium","confidence":"Medium","name":"Journal USN recree recemment","description":"Le journal USN porte un identifiant cree apres la derniere mise sous tension : il a donc ete supprime puis recree. La couverture temporelle en est fortement reduite.","path":"C:","timestamp":"2026-08-28T03:36:02.8388297+00:00","source":"FSCTL_QUERY_USN_JOURNAL","evidence":[{"kind":"Demo","locator":"C:","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"USN_JOURNAL_RESET","label":"Journal USN recree apres le dernier demarrage","points":15}],"total":15},"explanation":"Le journal USN porte un identifiant cree apres la derniere mise sous tension : il a donc ete supprime puis recree. La couverture temporelle en est fortement reduite.","falsePositiveNote":"Une reinstallation de Windows, un redimensionnement de partition ou un outil de maintenance produisent le meme effet. Windows a ete installe il y a 412 jours sur cette machine.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"374f36465e3745788259087151dd83a5","ruleId":"DEMO.UNSIGNED_DLL_TEMP","category":"FileSystem","severity":"Low","confidence":"Low","name":"DLL non signee dans un dossier temporaire","description":"Une bibliotheque non signee reside dans un dossier temporaire.","path":"C:\\Users\\joueur\\AppData\\Local\\Temp\\d3d9hook.dll","timestamp":"2026-08-25T23:27:02.8388306+00:00","source":"Systeme de fichiers","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\AppData\\Local\\Temp\\d3d9hook.dll","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"UNSIGNED_IN_TEMP","label":"DLL non signee dans un chemin temporaire","points":5}],"total":5},"explanation":"Une bibliotheque non signee reside dans un dossier temporaire.","falsePositiveNote":"Les dossiers temporaires contiennent legitimement des DLL non signees : outils de developpement, runtimes, extractions d'installeurs.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"0e1ed600576941e7a634bd1740a10a9f","ruleId":"DEMO.SUSPICIOUS_NAME","category":"FileSystem","severity":"Low","confidence":"Low","name":"Nom de fichier figurant dans la liste d'indicateurs","description":"Le nom correspond a un motif de la liste d'indicateurs. Pondere tres bas volontairement.","path":"C:\\Users\\joueur\\Documents\\projets\\loader.exe","timestamp":"2026-08-27T11:32:02.8388315+00:00","source":"Systeme de fichiers","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\Documents\\projets\\loader.exe","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"NAME_PATTERN","label":"Nom correspondant a un motif d'indicateur","points":5}],"total":5},"explanation":"Le nom correspond a un motif de la liste d'indicateurs. Pondere tres bas volontairement.","falsePositiveNote":"Un cheat reellement utilise porte rarement son nom. Dossiers de developpement, projets d'apprentissage et outils legitimes declenchent constamment ce motif. Ne jamais sanctionner sur le nom seul.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"fefe205aa5994f7dbd7c34a3538c25b0","ruleId":"DEMO.RECENT_LNK_MISSING_TARGET","category":"RecentFiles","severity":"Low","confidence":"Low","name":"Raccourci recent dont la cible n'existe plus","description":"Un raccourci de la liste des fichiers recents pointe vers une archive absente du disque.","path":"C:\\Users\\joueur\\Downloads\\build_final.zip","timestamp":"2026-08-27T19:37:02.8388324+00:00","source":"shell:recent (.lnk)","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\Downloads\\build_final.zip","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"LNK_DEAD_TARGET","label":"Cible du raccourci absente","points":5}],"total":5},"explanation":"Un raccourci de la liste des fichiers recents pointe vers une archive absente du disque.","falsePositiveNote":"Supprimer une archive apres extraction est le comportement normal.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"56fe9e12d62440069000927223d318c9","ruleId":"DEMO.WINRAR_EXTRACTION","category":"Archives","severity":"Low","confidence":"Low","name":"Extraction d'archive vers un dossier temporaire","description":"L'historique d'extraction de WinRAR indique un depot recent dans un dossier temporaire.","path":"C:\\Users\\joueur\\AppData\\Local\\Temp\\gm_pack","timestamp":"2026-08-26T03:29:02.8388333+00:00","source":"HKCU\\SOFTWARE\\WinRAR\\DialogEditHistory\\ExtrPath","evidence":[{"kind":"Demo","locator":"C:\\Users\\joueur\\AppData\\Local\\Temp\\gm_pack","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"EXTRACT_TO_TEMP","label":"Extraction vers un dossier temporaire","points":5}],"total":5},"explanation":"L'historique d'extraction de WinRAR indique un depot recent dans un dossier temporaire.","falsePositiveNote":"Extraire une archive vers un dossier temporaire est un usage courant. Sans horodatage par entree, seule la position dans l'historique est exploitable.","relatedObservationIds":[],"supersededDetectionIds":[]},{"id":"30e6034221834f78ac6c613a833cdb4e","ruleId":"DEMO.EXPLORER_RESTART","category":"Processes","severity":"Low","confidence":"Low","name":"Explorer redemarre peu avant le controle","description":"Explorer tourne depuis 2 minutes alors que la session est ouverte depuis 3 h 41. Aucun plantage correspondant dans le journal Application.","path":"C:\\Windows\\explorer.exe","timestamp":"2026-08-28T12:52:02.8388342+00:00","source":"GetProcessTimes + journal Application","evidence":[{"kind":"Demo","locator":"C:\\Windows\\explorer.exe","rawText":"Donnee de demonstration — le contenu reel de la preuve arrive avec les modules (etape 5).","originalLength":89,"verificationHint":"Les modules reels fourniront ici la valeur brute et son emplacement de verification."}],"score":{"contributions":[{"ruleId":"EXPLORER_YOUNG","label":"Explorer nettement plus jeune que la session","points":5}],"total":5},"explanation":"Explorer tourne depuis 2 minutes alors que la session est ouverte depuis 3 h 41. Aucun plantage correspondant dans le journal Application.","falsePositiveNote":"Un redemarrage recent d'Explorer a de nombreuses causes legitimes : changement de DPI ou de theme, mise a jour, installation d'une extension shell, redemarrage manuel. C'est un indicateur a verifier, jamais une preuve.","relatedObservationIds":[],"supersededDetectionIds":[]}],"observations":[{"id":"bd1e8a2497d143f18a0b3a4eef5d068c","moduleId":"registre","kind":"SystemFact","timestamp":"2026-08-28T14:32:02.8925456+00:00","fields":{},"evidence":{"kind":"Test","locator":"registre#0","rawText":"observation de test","originalLength":19},"source":"registre (test)"},{"id":"33aa250e527642e6bd0f0ed106da8fd7","moduleId":"registre","kind":"SystemFact","timestamp":"2026-08-28T14:32:02.8925535+00:00","fields":{},"evidence":{"kind":"Test","locator":"registre#1","rawText":"observation de test","originalLength":19},"source":"registre (test)"},{"id":"144f2a2082284ca687f08f4a146d6f5d","moduleId":"prefetch","kind":"SystemFact","timestamp":"2026-08-28T14:32:02.8916009+00:00","fields":{},"evidence":{"kind":"Test","locator":"prefetch#0","rawText":"observation de test","originalLength":19},"source":"prefetch (test)"},{"id":"4ad470dbec374f5a8f97a5a11b98b926","moduleId":"prefetch","kind":"SystemFact","timestamp":"2026-08-28T14:32:02.8916795+00:00","fields":{},"evidence":{"kind":"Test","locator":"prefetch#1","rawText":"observation de test","originalLength":19},"source":"prefetch (test)"}],"executionLog":["[14:32:02] [scan] Scan demarre — profil Standard — 3 modules","[14:32:02] [usn] ⟳ Module usn","[14:32:02] [prefetch] ⟳ Module prefetch","[14:32:02] [registre] ⟳ Module registre","[14:32:02] [prefetch] ✓ Module prefetch — 40 elements, 3 observations (2 ms)","[14:32:02] [registre] ✓ Module registre — 12 elements, 2 observations (0 ms)","[14:32:02] [usn] ✓ Module usn — 900 elements, 1 observations (0 ms)","[14:32:02] [scan] Scan termine en 0.0 s — 952 elements — 6 observations"],"accessLog":[{"timestamp":"2026-08-28T14:32:02.9203316+00:00","moduleId":"registre","resourceKind":"RegistryKey","resource":"HKCU\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\AppCompatFlags\\\\Compatibility Assistant\\\\Store"},{"timestamp":"2026-08-28T14:32:02.9203316+00:00","moduleId":"prefetch","resourceKind":"File","resource":"C:\\\\Windows\\\\Prefetch"},{"timestamp":"2026-08-28T14:32:02.9203316+00:00","moduleId":"usn","resourceKind":"Volume","resource":"\\\\\\\\.\\\\C:"}]};
+</script>
+</body>
+</html>

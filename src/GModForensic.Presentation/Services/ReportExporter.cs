@@ -63,6 +63,8 @@ public sealed class ReportExporter : IReportExporter
             High = request.Score.HighCount,
             Medium = request.Score.MediumCount,
             Low = request.Score.LowCount,
+            ByCategory = request.Score.ByCategory.ToDictionary(
+                pair => pair.Key.ToString(), pair => pair.Value, StringComparer.Ordinal),
         },
         Modules = request.Result.ModuleResults
             .Select(m => new ReportModule

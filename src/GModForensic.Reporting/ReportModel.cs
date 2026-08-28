@@ -32,6 +32,13 @@ public sealed record ReportScore
     public required int High { get; init; }
     public required int Medium { get; init; }
     public required int Low { get; init; }
+
+    /// <summary>
+    /// Contribution de chaque categorie au score global, apres plafonnement.
+    /// Sans elle, un lecteur de rapport ne pourrait qu'approximer d'ou vient le score.
+    /// </summary>
+    public IReadOnlyDictionary<string, int> ByCategory { get; init; } =
+        new Dictionary<string, int>(StringComparer.Ordinal);
 }
 
 public sealed record ReportModule

@@ -7,7 +7,7 @@ namespace GModForensic.Tests.Presentation;
 
 public sealed class ShellViewModelTests
 {
-    private static ShellViewModel CreateShell(
+    private static async Task<ShellViewModel> CreateShellAsync(
         FakeScanSession? session = null,
         RecordingExporter? exporter = null)
     {
@@ -15,6 +15,9 @@ public sealed class ShellViewModelTests
             session ?? new FakeScanSession(),
             exporter ?? new RecordingExporter(),
             new DetectionEngine([new DemoDetectionRule()]));
+
+        // Comme le fait l'application : la fenetre existe d'abord, la mesure suit.
+        await shell.InitializeAsync();
 
         shell.Home.OperatorName = "staff.durand";
         shell.Home.SubjectIdentifier = "joueur#4412";
@@ -24,9 +27,23 @@ public sealed class ShellViewModelTests
     }
 
     [Fact]
+    public void Construire_le_shell_ne_sonde_aucun_privilege()
+    {
+        var session = new FakeScanSession();
+
+        _ = new ShellViewModel(session, new RecordingExporter());
+
+        // Regression : la mesure des privileges sonde le jeton, les volumes et le dossier
+        // Prefetch. La declencher a la construction retardait l'affichage de la fenetre —
+        // sur une machine avec un lecteur reseau deconnecte, de plusieurs dizaines de
+        // secondes, pendant lesquelles le programme ne montrait rien a l'ecran.
+        Assert.Equal(0, session.MeasureCallCount);
+    }
+
+    [Fact]
     public async Task Un_scan_enchaine_accueil_puis_scan_puis_resultats()
     {
-        var shell = CreateShell();
+        var shell = await CreateShellAsync();
 
         Assert.Equal(ShellScreen.Home, shell.Screen);
 
@@ -43,7 +60,7 @@ public sealed class ShellViewModelTests
     public async Task Un_scan_annule_presente_quand_meme_ses_resultats_partiels()
     {
         var session = new FakeScanSession();
-        var shell = CreateShell(session);
+        var shell = await CreateShellAsync(session);
 
         // Annulation des la premiere notification de progression, comme un clic tres precoce.
         shell.Scan.PropertyChanged += (_, args) =>
@@ -64,7 +81,7 @@ public sealed class ShellViewModelTests
     [Fact]
     public async Task La_navigation_resultats_export_retour_fonctionne()
     {
-        var shell = CreateShell();
+        var shell = await CreateShellAsync();
         await shell.StartScanAsync();
 
         shell.Results.ExportCommand.Execute(null);
@@ -82,7 +99,7 @@ public sealed class ShellViewModelTests
     public async Task Les_modules_desactives_ne_sont_pas_affiches_pendant_le_scan()
     {
         var session = new FakeScanSession();
-        var shell = CreateShell(session);
+        var shell = await CreateShellAsync(session);
 
         shell.Home.Modules.Single(m => m.Id == "prefetch").IsEnabled = false;
 

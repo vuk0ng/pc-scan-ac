@@ -57,6 +57,16 @@ public static class CapabilityProbe
         {
             try
             {
+                // DriveType est lu depuis la table des volumes et ne touche jamais le
+                // peripherique. IsReady et DriveFormat, eux, l'interrogent : sur un lecteur
+                // reseau deconnecte ou un lecteur optique vide, l'appel peut bloquer plusieurs
+                // dizaines de secondes. On elimine donc ces lecteurs AVANT de les sonder —
+                // et de toute facon seuls les volumes locaux portent un journal USN.
+                if (drive.DriveType is not (DriveType.Fixed or DriveType.Removable))
+                {
+                    continue;
+                }
+
                 if (drive.IsReady
                     && string.Equals(drive.DriveFormat, "NTFS", StringComparison.OrdinalIgnoreCase))
                 {

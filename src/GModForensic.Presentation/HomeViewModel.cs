@@ -13,6 +13,7 @@ namespace GModForensic.Presentation;
 public sealed partial class HomeViewModel : ObservableObject
 {
     private readonly IScanSession _session;
+    private Capabilities _capabilities = Capabilities.None;
 
     [ObservableProperty]
     private string _operatorName = string.Empty;
@@ -32,6 +33,9 @@ public sealed partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     private string _fileSystemRoots;
 
+    [ObservableProperty]
+    private bool _isMeasuring = true;
+
     public HomeViewModel(IScanSession session, Func<Task>? startRequested = null)
     {
         _session = session ?? throw new ArgumentNullException(nameof(session));
@@ -40,11 +44,50 @@ public sealed partial class HomeViewModel : ObservableObject
         var defaults = new ScanConfiguration();
         _fileSystemRoots = string.Join(Environment.NewLine, defaults.FileSystemRoots);
 
-        Modules = new ObservableCollection<ModuleToggleViewModel>(
-            _session.Modules.Select(m => new ModuleToggleViewModel(m, _session.Capabilities)));
+        Modules = [];
+        Unavailable = [];
 
-        Unavailable = new ObservableCollection<ModuleToggleViewModel>(
-            Modules.Where(m => !m.IsAvailable));
+        // Les capacites arrivent apres l'affichage de la fenetre : voir ApplyCapabilities.
+        if (_session.Capabilities is { } already)
+        {
+            ApplyCapabilities(already);
+        }
+    }
+
+    /// <summary>
+    /// Renseigne l'ecran une fois les privileges mesures.
+    /// <para>
+    /// La mesure sonde le jeton, les volumes et le dossier Prefetch ; elle est faite hors du
+    /// fil d'interface pour que la fenetre s'affiche immediatement, quoi qu'il arrive.
+    /// </para>
+    /// </summary>
+    public void ApplyCapabilities(Capabilities capabilities)
+    {
+        ArgumentNullException.ThrowIfNull(capabilities);
+
+        _capabilities = capabilities;
+
+        Modules.Clear();
+        Unavailable.Clear();
+
+        foreach (var module in _session.Modules)
+        {
+            var toggle = new ModuleToggleViewModel(module, capabilities);
+            Modules.Add(toggle);
+
+            if (!toggle.IsAvailable)
+            {
+                Unavailable.Add(toggle);
+            }
+        }
+
+        IsMeasuring = false;
+
+        OnPropertyChanged(nameof(Capabilities));
+        OnPropertyChanged(nameof(CapabilitySummary));
+        OnPropertyChanged(nameof(CapabilityNotes));
+        OnPropertyChanged(nameof(HasUnavailableModules));
+        NotifyCanStart();
     }
 
     /// <summary>Appele quand le staff lance le scan. Fourni par le shell.</summary>
@@ -55,12 +98,13 @@ public sealed partial class HomeViewModel : ObservableObject
     /// <summary>Modules qui seront ignores, avec leur motif — affiches sans avoir a derouler la liste.</summary>
     public ObservableCollection<ModuleToggleViewModel> Unavailable { get; }
 
-    public Capabilities Capabilities => _session.Capabilities;
+    public Capabilities Capabilities => _capabilities;
 
     public bool HasUnavailableModules => Unavailable.Count > 0;
 
-    public string CapabilitySummary =>
-        $"Administrateur : {YesNo(Capabilities.IsElevated)}"
+    public string CapabilitySummary => IsMeasuring
+        ? "Mesure des privileges en cours..."
+        : $"Administrateur : {YesNo(Capabilities.IsElevated)}"
         + $"   ·   SeDebugPrivilege : {YesNo(Capabilities.HasDebugPrivilege)}"
         + $"   ·   SeSecurityPrivilege : {YesNo(Capabilities.HasSecurityPrivilege)}";
 
@@ -81,7 +125,8 @@ public sealed partial class HomeViewModel : ObservableObject
     /// artefacts detailles sur une machine personnelle.
     /// </summary>
     public bool CanStart =>
-        ConsentGiven
+        !IsMeasuring
+        && ConsentGiven
         && !string.IsNullOrWhiteSpace(OperatorName)
         && !string.IsNullOrWhiteSpace(SubjectIdentifier)
         && Modules.Any(m => m.IsEnabled && m.IsAvailable);
@@ -116,6 +161,8 @@ public sealed partial class HomeViewModel : ObservableObject
             FileSystemRoots = roots.Length > 0 ? roots : defaults.FileSystemRoots,
         };
     }
+
+    partial void OnIsMeasuringChanged(bool value) => NotifyCanStart();
 
     partial void OnConsentGivenChanged(bool value) => NotifyCanStart();
 

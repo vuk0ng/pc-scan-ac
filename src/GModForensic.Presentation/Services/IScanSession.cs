@@ -9,8 +9,18 @@ namespace GModForensic.Presentation.Services;
 /// </summary>
 public interface IScanSession
 {
-    /// <summary>Capacites reellement obtenues, mesurees au demarrage du programme.</summary>
-    Capabilities Capabilities { get; }
+    /// <summary>
+    /// Capacites reellement obtenues. <c>null</c> tant que la mesure n'a pas abouti.
+    /// <para>
+    /// La mesure sonde le jeton, les volumes et le dossier Prefetch : elle peut prendre du
+    /// temps. Elle ne doit donc JAMAIS s'executer avant l'affichage de la fenetre, sous peine
+    /// de laisser un processus sans interface visible.
+    /// </para>
+    /// </summary>
+    Capabilities? Capabilities { get; }
+
+    /// <summary>Mesure les capacites hors du fil d'interface. Idempotent.</summary>
+    Task<Capabilities> MeasureCapabilitiesAsync(CancellationToken cancellationToken);
 
     /// <summary>Modules disponibles, dans l'ordre ou ils seront executes.</summary>
     IReadOnlyList<IScanModule> Modules { get; }

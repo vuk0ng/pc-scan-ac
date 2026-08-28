@@ -67,6 +67,23 @@ public sealed partial class ShellViewModel : ObservableObject
     /// <summary>Dernier resultat brut, conserve pour l'export meme apres une annulation.</summary>
     public ScanRunResult? LastResult { get; private set; }
 
+    /// <summary>
+    /// Mesure les privileges et renseigne l'ecran d'accueil.
+    /// <para>
+    /// A appeler APRES l'affichage de la fenetre : la mesure sonde le jeton, les volumes et le
+    /// dossier Prefetch, et peut prendre plusieurs secondes. La lancer avant l'affichage
+    /// laisserait un processus sans interface visible.
+    /// </para>
+    /// </summary>
+    public async Task InitializeAsync(CancellationToken cancellationToken = default)
+    {
+        var capabilities = await _session
+            .MeasureCapabilitiesAsync(cancellationToken)
+            .ConfigureAwait(true);
+
+        Home.ApplyCapabilities(capabilities);
+    }
+
     public async Task StartScanAsync()
     {
         _configuration = Home.BuildConfiguration();

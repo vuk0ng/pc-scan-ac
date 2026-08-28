@@ -121,6 +121,14 @@
         <Border Grid.Column="2" Style="{StaticResource Card}">
           <StackPanel>
             <TextBlock Style="{StaticResource H2}" Text="Modules" />
+
+            <!-- La mesure des privilèges a lieu APRÈS l'affichage de la fenêtre : sur une
+                 machine avec un lecteur réseau déconnecté elle peut durer, et l'écran doit
+                 le dire plutôt que de rester vide. -->
+            <TextBlock Style="{StaticResource Muted}"
+                       Visibility="{Binding IsMeasuring, Converter={StaticResource NotEmpty}}"
+                       Text="Mesure des privilèges en cours... La liste des modules apparaîtra dès qu'elle sera terminée." />
+
             <ItemsControl ItemsSource="{Binding Modules}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -144,6 +152,10 @@
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
         <TextBlock Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,16,0"
                    Text="Le consentement, le nom du staff et l'identifiant du sujet sont requis." />
+        <TextBlock Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,16,0"
+                   Foreground="{StaticResource ToneWarn}"
+                   Visibility="{Binding IsMeasuring, Converter={StaticResource NotEmpty}}"
+                   Text="Mesure des privilèges en cours..." />
         <Button Style="{StaticResource PrimaryButton}" Content="Lancer le scan"
                 Command="{Binding StartCommand}" />
       </StackPanel>

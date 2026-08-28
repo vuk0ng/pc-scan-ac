@@ -13,7 +13,7 @@ internal sealed class FakeScanSession : IScanSession
 
     public FakeScanSession(Capabilities? capabilities = null, IEnumerable<IScanModule>? modules = null)
     {
-        Capabilities = capabilities ?? Everything;
+        _measured = capabilities ?? Everything;
 
         Modules = modules?.ToArray() ??
         [
@@ -43,7 +43,20 @@ internal sealed class FakeScanSession : IScanSession
         Notes = ["Compte : STAFF\\controle"],
     };
 
-    public Capabilities Capabilities { get; }
+    public Capabilities? Capabilities { get; private set; }
+
+    /// <summary>Capacites deja connues : la mesure est immediate dans les tests.</summary>
+    private readonly Capabilities _measured;
+
+    /// <summary>Nombre d'appels a la mesure, pour verifier qu'elle n'a pas lieu trop tot.</summary>
+    public int MeasureCallCount { get; private set; }
+
+    public Task<Capabilities> MeasureCapabilitiesAsync(CancellationToken cancellationToken)
+    {
+        MeasureCallCount++;
+        Capabilities = _measured;
+        return Task.FromResult(_measured);
+    }
 
     public IReadOnlyList<IScanModule> Modules { get; }
 
@@ -60,7 +73,7 @@ internal sealed class FakeScanSession : IScanSession
         {
             ScanId = "fake",
             Configuration = configuration,
-            Capabilities = Capabilities,
+            Capabilities = _measured,
             Logger = new InMemoryScanLogger(),
             FileFacts = new FileFactsCache(new NullFileFactsProvider()),
             Clock = TimeProvider.System,

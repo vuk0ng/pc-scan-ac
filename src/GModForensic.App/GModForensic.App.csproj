@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+
+    <AssemblyName>GModForensicScanner</AssemblyName>
+    <RootNamespace>GModForensic.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GModForensic.Abstractions\GModForensic.Abstractions.csproj" />
+    <ProjectReference Include="..\GModForensic.Detection\GModForensic.Detection.csproj" />
+    <ProjectReference Include="..\GModForensic.Engine\GModForensic.Engine.csproj" />
+    <ProjectReference Include="..\GModForensic.Native\GModForensic.Native.csproj" />
+    <ProjectReference Include="..\GModForensic.Reporting\GModForensic.Reporting.csproj" />
+    <ProjectReference Include="..\GModForensic.Scanners\GModForensic.Scanners.csproj" />
+  </ItemGroup>
+
+</Project>

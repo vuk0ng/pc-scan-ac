@@ -1,0 +1,16 @@
+// API Win32 generees par CsWin32. Chaque ajout doit rester une operation de LECTURE.
+// Aucune API d'ecriture, d'injection ou d'execution ne doit apparaitre dans ce fichier.
+// Revue obligatoire a chaque modification (RÈGLE ABSOLUE, §1 et §27).
+
+// --- Jeton du processus courant : mesure des privileges reellement obtenus (§2) ---
+OpenProcessToken
+GetTokenInformation
+GetCurrentProcess
+LookupPrivilegeValueW
+PrivilegeCheck
+TOKEN_ELEVATION
+TOKEN_ACCESS_MASK
+PRIVILEGE_SET
+TOKEN_PRIVILEGES_ATTRIBUTES
+TOKEN_INFORMATION_CLASS
+LUID

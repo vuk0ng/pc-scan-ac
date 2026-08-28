@@ -7,7 +7,7 @@ jamais de pseudo-code. Chaque étape se termine par un livrable exécutable ou t
 
 | Étape | Livrable | Critère de fin |
 |---|---|---|
-| **3 · Squelette** | Solution, 7 projets, `Directory.Build.props`, `BannedSymbols.txt`, `app.manifest`, contrats de `Abstractions`, `ScanOrchestrator` + `ModuleHost`, un module factice | `dotnet build` sans avertissement ; un scan factice s'exécute, progresse et s'annule proprement |
+| **3 · Squelette** ✓ | Solution, 7 projets + tests, `Directory.Build.props`, `BannedSymbols.txt`, `app.manifest`, contrats de `Abstractions`, `ScanOrchestrator` + `ModuleHost`, modules de démonstration | **Atteint** : `dotnet build` à 0 avertissement, 31 tests verts, scan factice qui progresse, échoue partiellement et s'annule en conservant ses résultats. Voir `docs/07`. |
 | **4 · Interface** | 4 écrans WPF, MVVM, thème sombre, progression, annulation, écran de résultats branché sur des données de démonstration | L'application se lance élevée, l'UI reste réactive, l'annulation fonctionne |
 | **5 · Modules** | Les 18 modules, un par un, dans l'ordre ci-dessous | Chaque module a ses tests ; un module en échec n'interrompt jamais le scan |
 | **6 · Moteur** | Normalisation, corrélation, chargeur de règles JSON, règles composites | Les scénarios de test produisent les entités attendues |

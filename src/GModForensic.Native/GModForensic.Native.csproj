@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--
+      x64 obligatoire : un processus 32 bits ne peut pas lire la memoire
+      d'un processus 64 bits (limite L6 de docs/01).
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GModForensic.Abstractions\GModForensic.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Signatures P/Invoke generees depuis les metadonnees officielles Win32, jamais ecrites a la main. -->
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.106">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

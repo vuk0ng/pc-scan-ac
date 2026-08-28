@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!--
+      Le garde-fou RS0030 vise le produit, pas les tests : ceux-ci ecrivent des fichiers
+      temporaires et doivent pouvoir referencer nommement les API interdites pour verifier
+      qu'elles restent bannies.
+    -->
+    <EnableBannedApiCheck>false</EnableBannedApiCheck>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\GModForensic.Abstractions\GModForensic.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\GModForensic.Detection\GModForensic.Detection.csproj" />
+    <ProjectReference Include="..\..\src\GModForensic.Engine\GModForensic.Engine.csproj" />
+    <ProjectReference Include="..\..\src\GModForensic.Reporting\GModForensic.Reporting.csproj" />
+  </ItemGroup>
+
+</Project>

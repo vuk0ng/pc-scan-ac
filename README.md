@@ -8,8 +8,16 @@ seraient longues à rechercher manuellement avec Process Hacker, Regedit, PowerS
 
 ## État du projet
 
-**Phase de conception — étapes 1 et 2 du plan.** Aucun code applicatif n'est encore écrit, conformément à
-la méthode demandée (§29 : concevoir avant de coder).
+**Étape 3 terminée — squelette compilable.** La solution compile sans aucun avertissement et 31 tests
+passent. Les modules réels arrivent à l'étape 5 ; ceux du catalogue actuel sont des modules de
+démonstration qui servent à valider l'orchestrateur.
+
+```
+Étapes 1–2  Analyse, choix technologique, architecture          ✓ livré
+Étape 3     Squelette : 8 projets, garde-fous, orchestrateur    ✓ livré
+Étape 4     Interface WPF complète (4 écrans, MVVM)             à venir
+Étape 5     Les 18 modules réels                                à venir
+```
 
 | Document | Contenu |
 |---|---|
@@ -19,6 +27,7 @@ la méthode demandée (§29 : concevoir avant de coder).
 | [`docs/04-detection-scoring.md`](docs/04-detection-scoring.md) | Corrélation, règles, scoring contextuel, maîtrise des faux positifs |
 | [`docs/05-ui-et-rapport.md`](docs/05-ui-et-rapport.md) | Interface WPF, rapports HTML/JSON/TXT, journalisation, erreurs, performance |
 | [`docs/06-plan-developpement.md`](docs/06-plan-developpement.md) | Étapes 3 à 10, ordre d'implémentation, compilation, décisions ouvertes |
+| [`docs/07-etape-3-squelette.md`](docs/07-etape-3-squelette.md) | Ce que contient le squelette, comment le compiler, ce que les tests prouvent |
 
 ## Technologie retenue
 
@@ -41,3 +50,31 @@ consorts en **erreur de compilation**, et un test post-build vérifie l'absence 
 Consentement explicite de la personne analysée, collecte minimisée (aucun mot de passe, token, cookie ou
 message privé), traitement entièrement local, aucune télémétrie, et transparence totale : tout ce qui est
 collecté figure dans le rapport, accompagné du journal des ressources réellement lues.
+
+## Compiler et tester
+
+Prérequis : SDK .NET 8. La solution se compile depuis Windows, Linux ou macOS
+(`EnableWindowsTargeting` permet de produire le binaire Windows depuis la CI) ; seul le lancement
+de `GModForensicScanner.exe` requiert Windows.
+
+```bash
+dotnet build GModForensicScanner.sln     # doit rester à 0 avertissement
+dotnet test  GModForensicScanner.sln     # 31 tests
+
+# Voir un scan se dérouler, progresser, échouer partiellement et s'annuler :
+dotnet test --filter Walkthrough --logger "console;verbosity=detailed"
+```
+
+## Structure
+
+```
+src/
+├─ GModForensic.Abstractions   contrats purs (net8.0) — aucune dépendance Win32
+├─ GModForensic.Native         P/Invoke générés par CsWin32 (net8.0-windows, x64)
+├─ GModForensic.Scanners       les modules de collecte (net8.0-windows, x64)
+├─ GModForensic.Detection      corrélation, règles, scoring (net8.0)
+├─ GModForensic.Engine         orchestrateur, isolation, progression (net8.0)
+├─ GModForensic.Reporting      JSON / HTML / TXT + unique point d'écriture (net8.0)
+└─ GModForensic.App            WPF, manifeste requireAdministrator (net8.0-windows, x64)
+tests/GModForensic.Tests       xUnit (net8.0) — exécutable hors Windows
+```

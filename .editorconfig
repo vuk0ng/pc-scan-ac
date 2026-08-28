@@ -1,0 +1,20 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+insert_final_newline = true
+
+# RS0030 : usage d'une API interdite par BannedSymbols.txt (RÈGLE ABSOLUE).
+# Severite forcee a error : ce garde-fou ne doit jamais pouvoir etre reduit a un avertissement.
+dotnet_diagnostic.RS0030.severity = error
+
+[*.{xml,csproj,props,targets,xaml}]
+indent_style = space
+indent_size = 2
+
+[*.{json,jsonc}]
+indent_style = space
+indent_size = 2

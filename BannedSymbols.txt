@@ -1,0 +1,55 @@
+## RÈGLE ABSOLUE — le programme est un scanner, uniquement.
+## Chaque entrée ci-dessous transforme un usage en erreur de compilation (RS0030).
+## Format : <DocumentationCommentId>;<message affiché au développeur>
+
+## --- Exécution de code découvert -------------------------------------------
+T:System.Diagnostics.Process;INTERDIT : le scanner n'execute jamais de processus. Utiliser NtQuerySystemInformation via GModForensic.Native pour ENUMERER sans lancer.
+T:System.Diagnostics.ProcessStartInfo;INTERDIT : le scanner n'execute jamais de processus.
+M:System.Reflection.Assembly.LoadFrom(System.String);INTERDIT : aucun chargement de code decouvert.
+M:System.Reflection.Assembly.LoadFile(System.String);INTERDIT : aucun chargement de code decouvert.
+M:System.Reflection.Assembly.UnsafeLoadFrom(System.String);INTERDIT : aucun chargement de code decouvert.
+T:System.Runtime.Loader.AssemblyLoadContext;INTERDIT : aucun chargement de code decouvert.
+
+## --- Modification du systeme de fichiers analyse ----------------------------
+M:System.IO.File.Delete(System.String);INTERDIT : aucune suppression de fichier.
+M:System.IO.File.Move(System.String,System.String);INTERDIT : aucun renommage de fichier.
+M:System.IO.File.Move(System.String,System.String,System.Boolean);INTERDIT : aucun renommage de fichier.
+M:System.IO.File.Copy(System.String,System.String);INTERDIT : aucune copie de binaire suspect (hash et metadonnees seulement).
+M:System.IO.File.Copy(System.String,System.String,System.Boolean);INTERDIT : aucune copie de binaire suspect.
+M:System.IO.File.SetAttributes(System.String,System.IO.FileAttributes);INTERDIT : lecture seule.
+M:System.IO.File.SetCreationTimeUtc(System.String,System.DateTime);INTERDIT : lecture seule.
+M:System.IO.File.SetLastWriteTimeUtc(System.String,System.DateTime);INTERDIT : lecture seule.
+M:System.IO.File.SetLastAccessTimeUtc(System.String,System.DateTime);INTERDIT : lecture seule.
+M:System.IO.Directory.Delete(System.String);INTERDIT : aucune suppression.
+M:System.IO.Directory.Delete(System.String,System.Boolean);INTERDIT : aucune suppression.
+M:System.IO.Directory.Move(System.String,System.String);INTERDIT : aucun deplacement.
+
+## --- Ecriture de fichiers : un seul composant autorise ----------------------
+## GModForensic.Reporting.ReportOutputWriter est le SEUL point d'ecriture du produit,
+## et uniquement sous le dossier de sortie choisi par le staff.
+M:System.IO.File.WriteAllText(System.String,System.String);Passer par ReportOutputWriter (ecriture limitee au dossier de rapport).
+M:System.IO.File.WriteAllBytes(System.String,System.Byte[]);Passer par ReportOutputWriter.
+M:System.IO.File.AppendAllText(System.String,System.String);Passer par ReportOutputWriter.
+M:System.IO.File.Create(System.String);Passer par ReportOutputWriter.
+M:System.IO.File.OpenWrite(System.String);Passer par ReportOutputWriter.
+M:System.IO.File.CreateText(System.String);Passer par ReportOutputWriter.
+
+## --- Lecture de fichiers : un seul composant autorise -----------------------
+## GModForensic.Native.Io.SafeFileReader ouvre en FileAccess.Read + FileShare.ReadWrite|Delete,
+## ce qui garantit qu'aucun fichier analyse n'est verrouille ni modifie.
+M:System.IO.File.Open(System.String,System.IO.FileMode);Passer par SafeFileReader (lecture seule, partage complet).
+M:System.IO.File.Open(System.String,System.IO.FileMode,System.IO.FileAccess);Passer par SafeFileReader.
+
+## --- Registre --------------------------------------------------------------
+M:Microsoft.Win32.RegistryKey.SetValue(System.String,System.Object);INTERDIT : le registre est lu, jamais ecrit.
+M:Microsoft.Win32.RegistryKey.SetValue(System.String,System.Object,Microsoft.Win32.RegistryValueKind);INTERDIT : le registre est lu, jamais ecrit.
+M:Microsoft.Win32.RegistryKey.DeleteValue(System.String);INTERDIT : le registre est lu, jamais ecrit.
+M:Microsoft.Win32.RegistryKey.DeleteSubKey(System.String);INTERDIT : le registre est lu, jamais ecrit.
+M:Microsoft.Win32.RegistryKey.DeleteSubKeyTree(System.String);INTERDIT : le registre est lu, jamais ecrit.
+M:Microsoft.Win32.RegistryKey.CreateSubKey(System.String);INTERDIT : le registre est lu, jamais ecrit.
+M:Microsoft.Win32.Registry.SetValue(System.String,System.String,System.Object);INTERDIT : le registre est lu, jamais ecrit.
+
+## --- Reseau : le traitement est entierement local ---------------------------
+T:System.Net.Http.HttpClient;INTERDIT : aucune transmission reseau, aucune telemetrie.
+T:System.Net.WebClient;INTERDIT : aucune transmission reseau.
+T:System.Net.Sockets.Socket;INTERDIT : aucune transmission reseau.

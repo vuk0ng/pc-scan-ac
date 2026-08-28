@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Logique pure : correlation, regles, scoring. Testable hors Windows. -->
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GModForensic.Abstractions\GModForensic.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

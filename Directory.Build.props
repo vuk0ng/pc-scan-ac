@@ -1,0 +1,41 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <NeutralLanguage>fr</NeutralLanguage>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- Permet de compiler les projets ciblant Windows depuis Linux/macOS (CI). -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+
+    <Product>GMod Forensic Scanner</Product>
+    <Company>Staff</Company>
+    <Version>0.3.0</Version>
+    <AssemblyVersion>0.3.0.0</AssemblyVersion>
+    <FileVersion>0.3.0.0</FileVersion>
+
+    <!-- Les projets de test se retirent du garde-fou : voir BannedSymbols.txt -->
+    <EnableBannedApiCheck Condition="'$(EnableBannedApiCheck)' == ''">true</EnableBannedApiCheck>
+  </PropertyGroup>
+
+  <!--
+    RÈGLE ABSOLUE (§1 et §27 du cahier des charges).
+    La garantie « scanner uniquement » ne repose pas sur la discipline du développeur :
+    l'usage d'une API interdite est une ERREUR DE COMPILATION.
+    Les rares exceptions légitimes sont explicitement désactivées ligne à ligne
+    avec un #pragma warning disable RS0030 commenté, donc auditables.
+  -->
+  <ItemGroup Condition="'$(EnableBannedApiCheck)' == 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Contrats purs : aucune dependance Win32, testables sur n'importe quelle plateforme. -->
+  </PropertyGroup>
+</Project>

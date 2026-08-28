@@ -79,9 +79,12 @@ public partial class App : Application
         StartupLog.Write("Construction de la fenetre");
         var window = new ShellWindow(_shell);
 
-        MainWindow = window;
+        // Show() peut echouer pendant la mise en page. MainWindow n'est donc affecte
+        // qu'ensuite : sinon le gestionnaire d'exceptions croirait qu'une fenetre existe
+        // et absorberait l'erreur, laissant un processus sans interface.
         window.Show();
         window.Activate();
+        MainWindow = window;
 
         StartupLog.Write("Fenetre affichee");
 

@@ -6,7 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!--
+      InvariantGlobalization reste a FALSE : sans ICU, seule la culture invariante existe et
+      le moteur de texte de WPF echoue des le premier calcul de mise en page
+      (« Cannot find non-neutral culture related to en-us », TypeInitializationException sur
+      MS.Internal.FontCache.MajorLanguages). La fenetre ne s'affiche alors jamais.
+      Aucun test ne peut le detecter : les tests ne demarrent pas d'interface WPF.
+    -->
+    <InvariantGlobalization>false</InvariantGlobalization>
     <NeutralLanguage>fr</NeutralLanguage>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
 

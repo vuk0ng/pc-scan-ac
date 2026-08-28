@@ -149,6 +149,35 @@ public sealed class AbsoluteRuleTests
         Assert.DoesNotContain("XMLHttpRequest", reader, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void La_globalisation_invariante_reste_desactivee()
+    {
+        // Regression. Avec InvariantGlobalization, seule la culture invariante existe :
+        // le moteur de texte de WPF leve des son premier calcul de mise en page
+        // (« Cannot find non-neutral culture related to en-us ») et la fenetre ne
+        // s'affiche jamais. Aucun test d'interface ne peut l'attraper — les tests ne
+        // demarrent pas WPF — d'ou cette verification sur la configuration elle-meme.
+        var props = File.ReadAllText(Path.Combine(RepositoryRoot, "Directory.Build.props"));
+
+        Assert.DoesNotContain("<InvariantGlobalization>true</InvariantGlobalization>", props,
+            StringComparison.OrdinalIgnoreCase);
+
+        // Et sur l'artefact reellement produit, quand il a ete compile.
+        var appOutput = Path.Combine(RepositoryRoot, "src", "GModForensic.App", "bin");
+
+        if (!Directory.Exists(appOutput))
+        {
+            return;
+        }
+
+        foreach (var config in Directory.EnumerateFiles(
+                     appOutput, "GModForensicScanner.runtimeconfig.json", SearchOption.AllDirectories))
+        {
+            Assert.DoesNotContain("\"System.Globalization.Invariant\": true",
+                File.ReadAllText(config), StringComparison.Ordinal);
+        }
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

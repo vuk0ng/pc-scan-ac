@@ -2,32 +2,38 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-  <!-- ============ Palette ============
-       Neutres biaises vers l'accent (teal instrument) plutot qu'un gris pur :
-       l'outil doit avoir l'air d'un instrument de mesure, pas d'une console de jeu. -->
-  <Color x:Key="GroundColor">#FF0D1413</Color>
-  <SolidColorBrush x:Key="Ground"      Color="#FF0D1413" />
-  <SolidColorBrush x:Key="Surface"     Color="#FF141C1B" />
-  <SolidColorBrush x:Key="Surface2"    Color="#FF1B2524" />
-  <SolidColorBrush x:Key="Ink"         Color="#FFE2EAE7" />
-  <SolidColorBrush x:Key="Ink2"        Color="#FF96A5A1" />
-  <SolidColorBrush x:Key="Ink3"        Color="#FF6D7C78" />
-  <SolidColorBrush x:Key="Line"        Color="#FF243130" />
-  <SolidColorBrush x:Key="LineStrong"  Color="#FF33443F" />
-  <SolidColorBrush x:Key="Accent"      Color="#FF63B4AA" />
-  <SolidColorBrush x:Key="AccentSoft"  Color="#FF17302E" />
+  <!-- ============ Palette — D.A. Solve Community ============
+       Navy tres sombre, accent bleu electrique, cartes arrondies.
+       Identique a celle du lecteur de rapport (tools/report-reader.html) :
+       le scanner et le lecteur doivent se ressembler. -->
+  <SolidColorBrush x:Key="Ground"      Color="#FF080D18" />
+  <SolidColorBrush x:Key="Surface"     Color="#FF0E1626" />
+  <SolidColorBrush x:Key="Surface2"    Color="#FF141E33" />
+  <SolidColorBrush x:Key="Surface3"    Color="#FF1B2740" />
+  <SolidColorBrush x:Key="Ink"         Color="#FFE6EDF9" />
+  <SolidColorBrush x:Key="Ink2"        Color="#FF94A5C4" />
+  <SolidColorBrush x:Key="Ink3"        Color="#FF67779A" />
+  <SolidColorBrush x:Key="Line"        Color="#FF1E2A42" />
+  <SolidColorBrush x:Key="LineStrong"  Color="#FF2C3A57" />
+  <SolidColorBrush x:Key="Accent"      Color="#FF3B82F6" />
+  <SolidColorBrush x:Key="AccentHover" Color="#FF60A5FA" />
+  <SolidColorBrush x:Key="AccentSoft"  Color="#FF10203A" />
+  <SolidColorBrush x:Key="OnAccent"    Color="#FF061020" />
 
-  <!-- Couleur semantique, distincte de l'accent. Elle ne porte JAMAIS seule l'information :
-       un symbole et un libelle texte l'accompagnent toujours (accessibilite). -->
-  <SolidColorBrush x:Key="ToneOk"     Color="#FF63B4AA" />
-  <SolidColorBrush x:Key="ToneWarn"   Color="#FFDC9A5E" />
-  <SolidColorBrush x:Key="ToneBad"    Color="#FFE4837A" />
-  <SolidColorBrush x:Key="ToneMuted"  Color="#FF6D7C78" />
-  <SolidColorBrush x:Key="ToneActive" Color="#FF63B4AA" />
-  <SolidColorBrush x:Key="ToneCrit"   Color="#FFE4837A" />
-  <SolidColorBrush x:Key="ToneHigh"   Color="#FFDC9A5E" />
-  <SolidColorBrush x:Key="ToneMed"    Color="#FFCBB05E" />
-  <SolidColorBrush x:Key="ToneLow"    Color="#FF8FA6B4" />
+  <!-- Couleur semantique, distincte de l'accent bleu : celui-ci ne code jamais
+       une gravite. La rampe de gravite est ORDINALE — sa clarte croit de
+       « critique » vers « moyen » (L 0,68 / 0,75 / 0,83), ce qui la rend lisible
+       sous toute forme de daltonisme. « Faible » est un neutre hors rampe.
+       Le symbole et le libelle texte accompagnent toujours la couleur. -->
+  <SolidColorBrush x:Key="ToneOk"     Color="#FF4ADE80" />
+  <SolidColorBrush x:Key="ToneWarn"   Color="#FFF0954D" />
+  <SolidColorBrush x:Key="ToneBad"    Color="#FFF2626C" />
+  <SolidColorBrush x:Key="ToneMuted"  Color="#FF67779A" />
+  <SolidColorBrush x:Key="ToneActive" Color="#FF3B82F6" />
+  <SolidColorBrush x:Key="ToneCrit"   Color="#FFF2626C" />
+  <SolidColorBrush x:Key="ToneHigh"   Color="#FFF0954D" />
+  <SolidColorBrush x:Key="ToneMed"    Color="#FFE0C766" />
+  <SolidColorBrush x:Key="ToneLow"    Color="#FF8A9BB5" />
 
   <FontFamily x:Key="UiFont">Segoe UI</FontFamily>
   <FontFamily x:Key="MonoFont">Consolas, Cascadia Mono, Courier New</FontFamily>
@@ -88,7 +94,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="Button">
           <Border x:Name="Chrome" Background="{TemplateBinding Background}"
-                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="3">
+                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                               Margin="{TemplateBinding Padding}" />
           </Border>
@@ -112,7 +118,7 @@
   </Style>
 
   <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
-    <Setter Property="Foreground" Value="{StaticResource Ground}" />
+    <Setter Property="Foreground" Value="{StaticResource OnAccent}" />
     <Setter Property="Background" Value="{StaticResource Accent}" />
     <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
     <Setter Property="FontWeight" Value="SemiBold" />
@@ -120,7 +126,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="Button">
           <Border x:Name="Chrome" Background="{TemplateBinding Background}"
-                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="3">
+                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                               Margin="{TemplateBinding Padding}" />
           </Border>
@@ -156,7 +162,7 @@
         <ControlTemplate TargetType="TextBox">
           <Border x:Name="Chrome" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
-                  BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                  BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
                           VerticalAlignment="Center" />
           </Border>
@@ -179,10 +185,10 @@
       <Setter.Value>
         <ControlTemplate TargetType="CheckBox">
           <StackPanel Orientation="Horizontal">
-            <Border x:Name="Box" Width="16" Height="16" CornerRadius="2" VerticalAlignment="Top"
+            <Border x:Name="Box" Width="16" Height="16" CornerRadius="4" VerticalAlignment="Top"
                     Margin="0,2,9,0" Background="{StaticResource Surface2}"
                     BorderBrush="{StaticResource LineStrong}" BorderThickness="1">
-              <Path x:Name="Mark" Data="M 2,6 L 6,10 L 13,2" Stroke="{StaticResource Ground}"
+              <Path x:Name="Mark" Data="M 2,6 L 6,10 L 13,2" Stroke="{StaticResource OnAccent}"
                     StrokeThickness="2" Visibility="Collapsed" />
             </Border>
             <ContentPresenter VerticalAlignment="Center" />
@@ -223,11 +229,11 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ProgressBar">
-          <Border Background="{TemplateBinding Background}" CornerRadius="5" ClipToBounds="True">
+          <Border Background="{TemplateBinding Background}" CornerRadius="999" ClipToBounds="True">
             <Grid>
               <Rectangle x:Name="PART_Track" />
               <Rectangle x:Name="PART_Indicator" HorizontalAlignment="Left"
-                         Fill="{TemplateBinding Foreground}" RadiusX="5" RadiusY="5" />
+                         Fill="{TemplateBinding Foreground}" RadiusX="999" RadiusY="999" />
             </Grid>
           </Border>
         </ControlTemplate>
@@ -253,7 +259,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ListBoxItem">
-          <Border x:Name="Chrome" Background="Transparent" CornerRadius="3" BorderThickness="1"
+          <Border x:Name="Chrome" Background="Transparent" CornerRadius="8" BorderThickness="1"
                   BorderBrush="Transparent">
             <ContentPresenter />
           </Border>
@@ -276,8 +282,8 @@
     <Setter Property="Background" Value="{StaticResource Surface}" />
     <Setter Property="BorderBrush" Value="{StaticResource Line}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="4" />
-    <Setter Property="Padding" Value="18" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="20" />
   </Style>
 
   <Style x:Key="Rule" TargetType="Border">

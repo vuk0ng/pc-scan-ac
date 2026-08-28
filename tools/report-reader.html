@@ -11,38 +11,43 @@
    Aucune ressource externe : le fichier doit s'ouvrir sur une machine hors ligne.
    ========================================================================== */
 :root{
-  --ground:#F2F4F3; --surface:#FFFFFF; --surface-2:#E9EDEB; --surface-3:#DFE5E2;
-  --ink:#141C1B; --ink-2:#4E5C59; --ink-3:#7B8985;
-  --line:#D6DDDA; --line-strong:#B4C0BC;
-  --accent:#265E5C; --accent-2:#3E8582; --accent-soft:#DCE9E7;
-  /* Rampe ORDINALE de gravite : monotone en clarte, donc lisible sous toute
-     forme de daltonisme. « Faible » sort volontairement de la rampe chaude. */
-  --sev-crit:#8E1F26; --sev-high:#B4571C; --sev-med:#A38112; --sev-low:#55707F;
-  --sev-crit-bg:#F7E7E7; --sev-high-bg:#F8ECE0; --sev-med-bg:#F6F0DC; --sev-low-bg:#E6ECEF;
-  --ok:#2F6E5B; --warn:#B4571C; --bad:#8E1F26; --muted:#7B8985;
-  --shadow:0 1px 2px rgba(20,28,27,.06), 0 10px 28px -18px rgba(20,28,27,.4);
+  --ground:#F3F6FC; --surface:#FFFFFF; --surface-2:#EDF2FA; --surface-3:#E3EAF6;
+  --ink:#0C1424; --ink-2:#47587A; --ink-3:#7386A6;
+  --line:#DCE4F1; --line-strong:#C3CFE3;
+  --accent:#2563EB; --accent-2:#1D4ED8; --accent-soft:#E4EDFD;
+  /* Rampe ORDINALE de gravite : clarte monotone (L 0,48 / 0,56 / 0,63), donc
+     lisible sous toute forme de daltonisme. « Faible » est un neutre hors rampe,
+     volontairement distinct du bleu d'accent — la couleur d'accent ne code jamais
+     une gravite. */
+  --sev-crit:#A81E29; --sev-high:#B4550B; --sev-med:#A48513; --sev-low:#55637A;
+  --sev-crit-bg:#FBE9EA; --sev-high-bg:#FBEFE2; --sev-med-bg:#F8F2DC; --sev-low-bg:#EDF1F7;
+  --ok:#0F7B54; --warn:#B4550B; --bad:#A81E29; --muted:#7386A6;
+  --shadow:0 1px 2px rgba(12,20,36,.06), 0 12px 32px -20px rgba(12,20,36,.45);
+  --r:10px; --r-sm:7px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --ground:#0D1413; --surface:#141C1B; --surface-2:#1B2524; --surface-3:#233130;
-    --ink:#E2EAE7; --ink-2:#98A7A3; --ink-3:#6E7D79;
-    --line:#243130; --line-strong:#35443F;
-    --accent:#63B4AA; --accent-2:#7FC7BE; --accent-soft:#17302E;
-    --sev-crit:#E4707A; --sev-high:#E58F3F; --sev-med:#CFC77E; --sev-low:#8FAABC;
-    --sev-crit-bg:#2C1A1B; --sev-high-bg:#2B2015; --sev-med-bg:#282516; --sev-low-bg:#1A242A;
-    --ok:#63B4AA; --warn:#E58F3F; --bad:#E4707A; --muted:#6E7D79;
-    --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -20px rgba(0,0,0,.9);
+    --ground:#080D18; --surface:#0E1626; --surface-2:#141E33; --surface-3:#1B2740;
+    --ink:#E6EDF9; --ink-2:#94A5C4; --ink-3:#67779A;
+    --line:#1E2A42; --line-strong:#2C3A57;
+    --accent:#3B82F6; --accent-2:#60A5FA; --accent-soft:#10203A;
+    --sev-crit:#F2626C; --sev-high:#F0954D; --sev-med:#E0C766; --sev-low:#8A9BB5;
+    --sev-crit-bg:#302130; --sev-high-bg:#30292C; --sev-med-bg:#2D3130; --sev-low-bg:#212A3B;
+    --ok:#4ADE80; --warn:#F0954D; --bad:#F2626C; --muted:#67779A;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 34px -22px rgba(0,0,0,.95);
+    --r:10px; --r-sm:7px;
   }
 }
 :root[data-theme="dark"]{
-  --ground:#0D1413; --surface:#141C1B; --surface-2:#1B2524; --surface-3:#233130;
-  --ink:#E2EAE7; --ink-2:#98A7A3; --ink-3:#6E7D79;
-  --line:#243130; --line-strong:#35443F;
-  --accent:#63B4AA; --accent-2:#7FC7BE; --accent-soft:#17302E;
-  --sev-crit:#E4707A; --sev-high:#E58F3F; --sev-med:#CFC77E; --sev-low:#8FAABC;
-  --sev-crit-bg:#2C1A1B; --sev-high-bg:#2B2015; --sev-med-bg:#282516; --sev-low-bg:#1A242A;
-  --ok:#63B4AA; --warn:#E58F3F; --bad:#E4707A; --muted:#6E7D79;
-  --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 30px -20px rgba(0,0,0,.9);
+  --ground:#080D18; --surface:#0E1626; --surface-2:#141E33; --surface-3:#1B2740;
+  --ink:#E6EDF9; --ink-2:#94A5C4; --ink-3:#67779A;
+  --line:#1E2A42; --line-strong:#2C3A57;
+  --accent:#3B82F6; --accent-2:#60A5FA; --accent-soft:#10203A;
+  --sev-crit:#F2626C; --sev-high:#F0954D; --sev-med:#E0C766; --sev-low:#8A9BB5;
+  --sev-crit-bg:#302130; --sev-high-bg:#30292C; --sev-med-bg:#2D3130; --sev-low-bg:#212A3B;
+  --ok:#4ADE80; --warn:#F0954D; --bad:#F2626C; --muted:#67779A;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 34px -22px rgba(0,0,0,.95);
+  --r:10px; --r-sm:7px;
 }
 
 *{box-sizing:border-box}
@@ -56,10 +61,10 @@ body{
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
 }
-h1,h2,h3{font-family:"Iowan Old Style",Georgia,"Times New Roman",serif;font-weight:600;margin:0;text-wrap:balance}
+h1,h2,h3{font-weight:700;letter-spacing:-.015em;margin:0;text-wrap:balance}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
 button{font:inherit;color:inherit;cursor:pointer}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-sm)}
 
 .wrap{max-width:1320px;margin:0 auto;padding:0 24px 80px}
 
@@ -70,19 +75,19 @@ button{font:inherit;color:inherit;cursor:pointer}
 .intake-card h1{font-size:clamp(30px,5vw,44px);line-height:1.08;letter-spacing:-.02em}
 .intake-card .lede{color:var(--ink-2);margin:16px 0 0;font-size:17px;max-width:60ch}
 #drop{
-  margin-top:28px;border:2px dashed var(--line-strong);border-radius:6px;background:var(--surface);
+  margin-top:28px;border:2px dashed var(--line-strong);border-radius:var(--r);background:var(--surface);
   padding:30px;transition:border-color .15s, background .15s
 }
 #drop.over{border-color:var(--accent);background:var(--accent-soft)}
 #json{
   width:100%;min-height:170px;resize:vertical;background:var(--surface-2);color:var(--ink);
-  border:1px solid var(--line-strong);border-radius:4px;padding:12px;
+  border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:12px;
   font-family:ui-monospace,monospace;font-size:12.5px;line-height:1.5
 }
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
 .btn{
-  background:transparent;border:1px solid var(--line-strong);border-radius:4px;
-  padding:9px 16px;font-size:14px
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;
+  padding:9px 18px;font-size:14px
 }
 .btn:hover{border-color:var(--accent);background:var(--surface-2)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--ground);font-weight:600}
@@ -98,7 +103,7 @@ header.report h1{font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em}
 .meta b{color:var(--ink);font-weight:600}
 .badge{
   display:inline-block;font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;
-  text-transform:uppercase;padding:4px 9px;border-radius:3px;white-space:nowrap
+  text-transform:uppercase;padding:4px 11px;border-radius:999px;white-space:nowrap
 }
 .badge.warn{background:var(--sev-high-bg);color:var(--sev-high)}
 .disclaimer{
@@ -111,15 +116,15 @@ section{margin-top:44px;scroll-margin-top:20px}
 .sec-title{display:flex;align-items:baseline;gap:14px;margin-bottom:16px}
 .sec-title h2{font-size:20px;letter-spacing:-.01em}
 .sec-title .count{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px}
 
 /* ---------- score ---------- */
 .scorewrap{display:grid;gap:16px}
 @media(min-width:900px){.scorewrap{grid-template-columns:minmax(280px,1fr) 1.4fr}}
 .hero{display:flex;align-items:flex-start;gap:22px}
-.hero .num{font-size:76px;line-height:.9;font-weight:600;font-family:"Iowan Old Style",Georgia,serif;font-variant-numeric:tabular-nums}
+.hero .num{font-size:74px;line-height:.9;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .hero .of{font-size:17px;color:var(--ink-3);align-self:flex-end;padding-bottom:12px}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .tile{background:var(--surface);padding:16px 14px}
 .tile .k{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .tile .v{font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:4px}
@@ -128,7 +133,7 @@ section{margin-top:44px;scroll-margin-top:20px}
 .bars{display:flex;flex-direction:column;gap:9px}
 .bar{display:grid;grid-template-columns:150px 1fr 46px;gap:12px;align-items:center;font-size:13.5px}
 .bar .lbl{color:var(--ink-2);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar .track{background:var(--surface-2);border-radius:3px;height:16px;position:relative;overflow:hidden}
+.bar .track{background:var(--surface-2);border-radius:var(--r-sm);height:16px;position:relative;overflow:hidden}
 .bar .fill{height:100%;border-radius:0 3px 3px 0;background:var(--accent);min-width:2px}
 .bar .val{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
 .bar .track[data-cap="1"]::after{
@@ -136,7 +141,7 @@ section{margin-top:44px;scroll-margin-top:20px}
 }
 
 /* ---------- modules ---------- */
-.mods{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.mods{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 @media(min-width:760px){.mods{grid-template-columns:1fr 1fr}}
 .mod{background:var(--surface);padding:13px 16px;display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:baseline}
 .mod .sym{font-size:15px}
@@ -148,7 +153,7 @@ section{margin-top:44px;scroll-margin-top:20px}
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 select,input[type=search]{
   background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);
-  border-radius:4px;padding:8px 10px;font:inherit;font-size:13.5px
+  border-radius:8px;padding:9px 14px;font:inherit;font-size:13.5px
 }
 input[type=search]{flex:1;min-width:200px}
 
@@ -158,7 +163,7 @@ input[type=search]{flex:1;min-width:200px}
 .list{display:flex;flex-direction:column;gap:6px;max-height:640px;overflow-y:auto;padding-right:4px}
 .det{
   display:grid;grid-template-columns:4px 1fr;gap:0;background:var(--surface);
-  border:1px solid var(--line);border-radius:4px;overflow:hidden;text-align:left;width:100%;padding:0;
+  border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;text-align:left;width:100%;padding:0;
   /* Sans flex:0 0 auto, le conteneur a hauteur maximale comprime les cartes
      et tronque le nom et le chemin de chaque indicateur. */
   flex:0 0 auto
@@ -170,7 +175,7 @@ input[type=search]{flex:1;min-width:200px}
 .det .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .det .nm{margin-top:4px;font-weight:600;font-size:14px}
 .det .pth{margin-top:3px;font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chip{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:3px 7px;border-radius:3px;white-space:nowrap}
+.chip{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap}
 .detail h3{font-size:18px;margin-bottom:6px}
 .detail .kv{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-2);word-break:break-all}
 .rule{height:1px;background:var(--line);margin:16px 0}
@@ -179,7 +184,7 @@ input[type=search]{flex:1;min-width:200px}
 .contrib .p{font-family:ui-monospace,monospace;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 .total{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-weight:600}
 .fp{background:var(--sev-high-bg);border-left:3px solid var(--sev-high);padding:12px 14px;border-radius:0 4px 4px 0;font-size:13.5px}
-.ev{background:var(--surface-2);border-radius:4px;padding:12px;margin-top:8px;font-size:12.5px}
+.ev{background:var(--surface-2);border-radius:var(--r-sm);padding:12px;margin-top:8px;font-size:12.5px}
 .ev .k{font-family:ui-monospace,monospace;font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em}
 
 /* ---------- chronologie ---------- */
@@ -191,17 +196,17 @@ input[type=search]{flex:1;min-width:200px}
 .tlitem .t{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
 /* ---------- tables et journaux ---------- */
-.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:5px;background:var(--surface)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:13px;min-width:620px}
 th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
 pre.log{
-  margin:0;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:16px;
+  margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
   font-family:ui-monospace,monospace;font-size:12px;line-height:1.65;color:var(--ink-2);
   max-height:340px;overflow:auto;white-space:pre-wrap;word-break:break-word
 }
-details{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:14px 18px;margin-top:10px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;margin-top:10px}
 details summary{cursor:pointer;font-weight:600;font-size:14px}
 details[open] summary{margin-bottom:12px}
 .empty{color:var(--ink-3);font-size:14px;padding:26px;text-align:center}

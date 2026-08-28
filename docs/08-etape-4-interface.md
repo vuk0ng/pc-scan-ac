@@ -5,6 +5,32 @@ fonctionnels. `dotnet build` à 0 avertissement, **59 tests verts**.
 
 ---
 
+## 0. Direction artistique
+
+Le scanner et le lecteur de rapport reprennent la D.A. **Solve Community** : fond navy très sombre,
+accent bleu électrique, cartes arrondies, en-têtes de section en petites capitales espacées,
+typographie entièrement sans serif. Les jetons de couleur sont identiques des deux côtés
+(`src/GModForensic.App/Themes/Dark.xaml` et `tools/report-reader.html`) — les deux produits doivent
+se ressembler.
+
+| Rôle | Sombre | Clair |
+|---|---|---|
+| Fond / surface | `#080D18` / `#0E1626` | `#F3F6FC` / `#FFFFFF` |
+| Accent | `#3B82F6` | `#2563EB` |
+| Texte / secondaire | `#E6EDF9` / `#94A5C4` | `#0C1424` / `#47587A` |
+
+**Le bleu d'accent ne code jamais une gravité.** La gravité est une échelle *ordinale*, traitée comme
+telle : sa clarté progresse de façon monotone (`L` 0,68 → 0,75 → 0,83 en sombre, 0,48 → 0,56 → 0,63
+en clair), ce qui la rend lisible sous toute forme de daltonisme, et « faible » est un neutre placé
+hors de la rampe chaude. Chaque gravité porte en plus son libellé texte : la couleur n'est jamais
+seule porteuse d'information.
+
+Cette rampe corrige un défaut réel de la version précédente, mesuré par le validateur de palette :
+« élevé » et « moyen » n'étaient séparés que de ΔE 8,8 pour un seuil de 15 — indistinguables même en
+vision normale.
+
+---
+
 ## 1. La décision qui rend l'interface testable
 
 WPF ne s'exécute que sous Windows. Une interface écrite entièrement dans le projet `App` aurait donc
